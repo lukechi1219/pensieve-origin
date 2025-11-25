@@ -6,8 +6,8 @@ modified: '2025-11-25 17:07:45'
 tags:
   - cli
   - development
-para_folder: inbox
-para_path: 0-inbox
+para_folder: projects
+para_path: 1-projects
 distillation_level: 0
 distillation_history:
   - level: 0
