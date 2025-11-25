@@ -5,7 +5,8 @@ import {
   BookOpen,
   FolderKanban,
   Inbox,
-  Archive
+  Archive,
+  MessageSquare
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 
@@ -16,6 +17,7 @@ const navigation = [
   { name: '領域', href: '/notes/areas', icon: FileText },
   { name: '資源', href: '/notes/resources', icon: Archive },
   { name: '日記', href: '/journals', icon: BookOpen },
+  { name: '對話', href: '/chats', icon: MessageSquare },
 ];
 
 export default function Sidebar() {

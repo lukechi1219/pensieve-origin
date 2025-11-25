@@ -6,6 +6,8 @@ import NoteDetail from './pages/NoteDetail';
 import Journals from './pages/Journals';
 import Projects from './pages/Projects';
 import ProjectDetail from './pages/ProjectDetail';
+import Chats from './pages/Chats';
+import ChatDetail from './pages/ChatDetail';
 
 function App() {
   return (
@@ -18,7 +20,8 @@ function App() {
           <Route path="journals" element={<Journals />} />
           <Route path="projects" element={<Projects />} />
           <Route path="projects/:name" element={<ProjectDetail />} />
-          {/* More routes to be added */}
+          <Route path="chats" element={<Chats />} />
+          <Route path="chats/:id" element={<ChatDetail />} />
         </Route>
       </Routes>
     </BrowserRouter>

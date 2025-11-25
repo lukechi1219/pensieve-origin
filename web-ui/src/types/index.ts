@@ -41,6 +41,26 @@ export interface Journal {
   file_path?: string;
 }
 
+// Chat types
+export interface ChatMessage {
+  role: 'user' | 'assistant';
+  content: string;
+  timestamp: string;
+}
+
+export interface Chat {
+  id: string;
+  title: string;
+  created: string;
+  modified: string;
+  tags: string[];
+  model?: string;
+  messageCount: number;
+  messages: ChatMessage[];
+  summary: string;
+  filePath: string;
+}
+
 // Project types
 export interface Project {
   name: string;

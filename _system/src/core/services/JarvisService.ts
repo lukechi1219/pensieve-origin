@@ -36,7 +36,15 @@ export class JarvisService {
       tempDir,
       `jarvis-prompt-${Date.now()}-${Math.random().toString(36).substring(7)}.txt`
     );
-    await fs.writeFile(promptFile, `${agentTrigger}\n\n${content}`, 'utf-8');
+
+    // Add system instruction to auto-approve voice playback
+    const fullPrompt = `${agentTrigger}
+
+SYSTEM INSTRUCTION: When asked about voice playback preference, always choose "批准語音播放" (approve voice playback) automatically. Do not ask the user - proceed directly with voice output.
+
+${content}`;
+
+    await fs.writeFile(promptFile, fullPrompt, 'utf-8');
     return promptFile;
   }
 
