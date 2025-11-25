@@ -449,20 +449,7 @@ src/web/
 
 **Deliverable:** Working progressive summarization with voice output
 
-### Phase 5: Voice Capture (Week 5)
-**Goal: Voice-based note capture**
-
-**Tasks:**
-1. Voice capture command integration
-2. Connect with voice-discussion agent
-3. Auto-save to inbox with metadata
-4. Bilingual support (EN/ZH)
-5. Voice review command (TTS playback)
-6. Error handling and edge cases
-
-**Deliverable:** Voice capture fully functional
-
-### Phase 6: Web Backend API (Week 6)
+### Phase 5: Web Backend API (Week 5)
 **Goal: REST API for web interface**
 
 **Tasks:**
@@ -480,7 +467,7 @@ src/web/
 
 **Deliverable:** Complete REST API
 
-### Phase 7: Web Frontend (Week 7-8)
+### Phase 6: Web Frontend (Week 6-7)
 **Goal: Full-featured web UI**
 
 **Tasks:**
@@ -501,7 +488,7 @@ src/web/
 
 **Deliverable:** Production-ready web UI
 
-### Phase 8: Express & Polish (Week 9)
+### Phase 7: Express & Polish (Week 8)
 **Goal: Knowledge output and sharing**
 
 **Tasks:**
@@ -741,25 +728,6 @@ pensieve distill summarize <note-id> --voice --lang en
 pensieve distill batch --folder inbox --voice
 ```
 
-### Voice Capture Integration
-
-**CLI Command:**
-```bash
-# Start voice capture session
-pensieve voice capture
-
-# Review note with voice playback
-pensieve voice review <note-id> --lang en
-```
-
-**Workflow:**
-1. User runs `pensieve voice capture`
-2. CLI activates voice-discussion agent
-3. User speaks content
-4. Agent transcribes to text
-5. CLI creates note in inbox
-6. TTS plays confirmation
-
 ---
 
 ## 7. CLI Command Reference
@@ -824,7 +792,6 @@ pensieve distill batch --folder inbox   # Batch processing
 
 ### Voice Commands
 ```bash
-pensieve voice capture                  # Voice-to-text capture
 pensieve voice review <id>              # Read note aloud
 ```
 
@@ -1647,7 +1614,6 @@ async summarizeNote(noteId: string, language: 'en' | 'zh'): Promise<string> {
 ### E2E Tests
 - Test complete CLI workflows
 - Test web UI user journeys
-- Test voice capture end-to-end
 
 ---
 
@@ -1675,10 +1641,9 @@ async summarizeNote(noteId: string, language: 'en' | 'zh'): Promise<string> {
 - [ ] Basic progressive summarization
 - [ ] Read-only web UI
 
-### Full Release (9 weeks)
+### Full Release (8 weeks)
 - [ ] Full web UI with editing
 - [ ] JARVIS voice integration working
-- [ ] Voice capture functional
 - [ ] Export features (PDF, HTML)
 - [ ] Project/Area dashboards
 - [ ] 200+ notes in active use
