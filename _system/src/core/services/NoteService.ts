@@ -44,9 +44,38 @@ export class NoteService {
   /**
    * Create a new note
    */
-  static async create(title: string, content: string): Promise<Note> {
+  static async create(
+    title: string,
+    content: string,
+    options?: {
+      tags?: string[];
+      isInspiring?: boolean;
+      isUseful?: boolean;
+      isPersonal?: boolean;
+      isSurprising?: boolean;
+    }
+  ): Promise<Note> {
     const id = generateTimestampId();
     const note = Note.create(title, content, id);
+
+    // Apply options if provided
+    if (options) {
+      if (options.tags) {
+        note.frontmatter.tags = options.tags;
+      }
+      if (options.isInspiring !== undefined) {
+        note.frontmatter.is_inspiring = options.isInspiring;
+      }
+      if (options.isUseful !== undefined) {
+        note.frontmatter.is_useful = options.isUseful;
+      }
+      if (options.isPersonal !== undefined) {
+        note.frontmatter.is_personal = options.isPersonal;
+      }
+      if (options.isSurprising !== undefined) {
+        note.frontmatter.is_surprising = options.isSurprising;
+      }
+    }
 
     const filePath = this.getNotePath(note);
     const fileContent = serializeFrontmatter(note.frontmatter, note.content);

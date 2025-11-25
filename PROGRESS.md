@@ -187,11 +187,59 @@
 
 **Rationale**: Consolidate all TypeScript project files into `_system/` directory for cleaner project structure, separating system code from documentation and vault data.
 
+### 6. Enhanced CLI Commands Implementation (2025-11-25)
+
+**Configuration & Environment** ✅
+- [x] Created `config.ts` utility to load .env configuration
+- [x] Created `vaultValidator.ts` for vault structure validation
+- [x] Implemented proper `init` command with validation
+  - Checks existing vault structure
+  - Creates PARA folders on demand
+  - User-friendly spinner and colored output
+
+**Capture Command** ✅
+- [x] Full note creation using NoteService
+- [x] CODE criteria flags: `--inspiring`, `--useful`, `--personal`, `--surprising`
+- [x] Tag support: `--tags "cli,development"`
+- [x] Auto-generated timestamp-based IDs and filenames
+- [x] Stores notes in `0-inbox` with full frontmatter
+
+**Journal Commands** ✅
+- [x] `pensieve journal` - Opens or creates today's journal entry
+- [x] `pensieve journal --date YYYY-MM-DD` - Opens specific date
+- [x] `pensieve journal yesterday` - Views yesterday's entry
+- [x] `pensieve journal streak` - Shows current journaling streak
+- [x] `pensieve journal stats` - Displays comprehensive statistics
+  - Total entries, current/longest streak
+  - Average energy level, most common mood
+  - Total habits completed
+
+**Build & Testing** ✅
+- [x] Extended NoteService.create() to accept options (tags, CODE criteria)
+- [x] Fixed all TypeScript compilation errors
+- [x] Build successful (zero errors)
+- [x] CLI tested and working:
+  - Created test note with tags and CODE criteria
+  - Journal entry auto-created for today
+  - Streak calculation working (1 day)
+  - Statistics correctly displayed
+
+**Commands Available**:
+```bash
+pensieve init                                      # Initialize vault
+pensieve capture "text" --useful --tags "cli"      # Capture note
+pensieve journal                                   # Today's journal
+pensieve journal --date 2025-11-20                 # Specific date
+pensieve journal yesterday                         # Yesterday
+pensieve journal streak                            # Show streak
+pensieve journal stats                             # Show statistics
+```
+
 ---
 
 ## ⏳ In Progress
 
-None - waiting for next direction.
+None - enhanced CLI commands complete!
 
 ---
 
