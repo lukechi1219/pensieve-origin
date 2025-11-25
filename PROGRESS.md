@@ -1,7 +1,7 @@
 # Pensieve Development Progress
 
 **Last Updated**: 2025-11-25
-**Current Phase**: Phase 1 - Foundation (Week 1)
+**Current Phase**: Phase 6 - Web Backend API (Complete)
 
 ---
 
@@ -10,8 +10,8 @@
 - **Implementation Plan**: ✅ Complete (IMPLEMENTATION_PLAN.md)
 - **Project Setup**: ✅ Complete
 - **Core Models**: ✅ Complete
-- **CLI Foundation**: ✅ Basic structure
-- **Web Backend**: ⏳ Not started
+- **CLI Foundation**: ✅ Complete (List, Search, PARA, Projects)
+- **Web Backend**: ✅ Complete (REST API with 20+ endpoints)
 - **Web Frontend**: ⏳ Not started
 
 ---
@@ -233,52 +233,173 @@ pensieve journal --date 2025-11-20                 # Specific date
 pensieve journal yesterday                         # Yesterday
 pensieve journal streak                            # Show streak
 pensieve journal stats                             # Show statistics
+pensieve list [folder]                             # List notes
+pensieve move <id> <folder>                        # Move note
+pensieve archive <id>                              # Archive note
+pensieve project create <name>                     # Create project
+pensieve project list                              # List projects
+pensieve project progress <name> <percent>         # Update progress
 ```
+
+### 7. Enhanced CLI Commands - List, Search, PARA (2025-11-25)
+
+**Project Management Service** ✅
+- [x] Created `ProjectService.ts` with full CRUD operations
+  - `create()` - Create project with deadline
+  - `list()` - List all projects with metadata
+  - `getByName()` - Get project by name
+  - `update()` - Update project metadata
+  - `updateProgress()` - Update progress percentage
+  - `addMilestone()` - Add milestone with due date
+  - `complete()` - Mark project complete with outcome
+  - `archive()` - Archive project with lessons learned
+
+**Enhanced CLI Commands** ✅
+- [x] `pensieve list [folder]` - List notes in PARA folder
+- [x] `pensieve search tag <tag>` - Search notes by tag
+- [x] `pensieve search code <criteria>` - Search by CODE criteria
+- [x] `pensieve move <noteId> <folder>` - Move note between folders
+- [x] `pensieve archive <noteId>` - Archive note
+- [x] `pensieve project create <name>` - Create new project
+- [x] `pensieve project list` - List all projects
+- [x] `pensieve project update <name>` - Update project metadata
+
+**Build & Testing** ✅
+- [x] Fixed ProjectMetadata interface issues
+- [x] Fixed Project.create() signature
+- [x] Fixed listFiles() to return directories
+- [x] All commands tested and working
+- [x] Build successful with zero errors
+
+**CLI User Manual** ✅
+- [x] Created CLI_USER_MANUAL.md (600+ lines)
+  - Complete command reference
+  - CODE methodology explanation
+  - PARA organization guide
+  - Progressive summarization
+  - Tips, best practices, troubleshooting
+
+### 8. Web Backend API Implementation (2025-11-25)
+
+**Server Setup** ✅
+- [x] Created Express server (`src/web/server.ts`)
+  - CORS enabled for frontend
+  - JSON request/response middleware
+  - Request logging
+  - Health check endpoint
+  - 404 and error handlers
+  - Port 3000 configuration
+
+**API Routes - Notes** ✅
+- [x] Created `routes/notes.ts` (280 lines)
+  - GET `/api/notes` - List/filter notes (folder, tag, CODE)
+  - GET `/api/notes/:id` - Get note by ID
+  - POST `/api/notes` - Create new note
+  - PUT `/api/notes/:id` - Update note
+  - DELETE `/api/notes/:id` - Delete note
+  - POST `/api/notes/:id/move` - Move note to folder
+
+**API Routes - Journals** ✅
+- [x] Created `routes/journals.ts` (240 lines)
+  - GET `/api/journals` - List by date range/month
+  - GET `/api/journals/today` - Get today's journal
+  - GET `/api/journals/yesterday` - Get yesterday's journal
+  - GET `/api/journals/streak` - Get journaling streak
+  - GET `/api/journals/stats` - Get statistics
+  - GET `/api/journals/:date` - Get by specific date
+  - PUT `/api/journals/:date` - Update journal entry
+
+**API Routes - Projects** ✅
+- [x] Created `routes/projects.ts` (230 lines)
+  - GET `/api/projects` - List all projects
+  - GET `/api/projects/:name` - Get project details
+  - POST `/api/projects` - Create new project
+  - PUT `/api/projects/:name` - Update project metadata
+  - POST `/api/projects/:name/progress` - Update progress
+  - POST `/api/projects/:name/milestones` - Add milestone
+  - POST `/api/projects/:name/complete` - Complete project
+  - POST `/api/projects/:name/archive` - Archive project
+
+**Testing & Documentation** ✅
+- [x] Comprehensive endpoint testing (20+ tests)
+  - All GET endpoints verified
+  - All POST/PUT endpoints verified
+  - Error handling tested (404, 400)
+  - Validation tested
+  - CORS verified
+  - Request logging verified
+- [x] Created API_DOCUMENTATION.md (900+ lines)
+  - Complete API reference
+  - Request/response examples
+  - Error handling guide
+  - Workflow examples
+- [x] Created API_TEST_RESULTS.md
+  - Full test coverage documentation
+  - Performance observations
+  - Known limitations
+  - Next steps recommendations
+
+**Server Status** ✅
+- Server running at http://localhost:3000
+- Vault path: `/Users/.../vault`
+- All endpoints operational
+- Zero errors during testing
+- Production-ready (MVP)
 
 ---
 
 ## ⏳ In Progress
 
-None - enhanced CLI commands complete!
+**Phase 7-8: Web Frontend Development** (Starting)
 
 ---
 
-## 📋 Next Steps (Recommended)
+## 📋 Next Steps - Web Frontend Implementation
 
-### Immediate (Option 1): Enhanced CLI Commands
+### Selected Approach: React + Vite + TypeScript
 
-1. **Configuration & Environment**
-   - Load .env configuration
-   - Add vault path validation
-   - Create proper init command
+**Technology Stack** (from IMPLEMENTATION_PLAN.md):
+- **Framework**: React 18 + TypeScript
+- **Build Tool**: Vite (fast HMR, modern bundling)
+- **Styling**: Tailwind CSS (utility-first)
+- **Components**: shadcn/ui (headless, flexible)
+- **State Management**: React Context API (upgrade to Zustand if needed)
+- **Routing**: React Router v6
+- **API Client**: Fetch API with custom hooks
+- **Markdown**: react-markdown + syntax highlighting
 
-2. **Capture Command**
-   - Implement full note creation using NoteService
-   - Add CODE criteria flags (--inspiring, --useful, etc.)
-   - Add tag support
-   - Support piped input
+### Phase 7-8 Implementation Plan
 
-3. **Journal Commands**
-   - `pensieve journal` - Open today's journal
-   - `pensieve journal --date YYYY-MM-DD` - Open specific date
-   - `pensieve journal yesterday` - Open yesterday
-   - `pensieve journal streak` - Show current streak
-   - `pensieve journal stats` - Show statistics
+**Week 7: Core UI Setup**
+1. Initialize Vite + React + TypeScript project in `web-ui/`
+2. Set up Tailwind CSS and shadcn/ui
+3. Create layout structure (sidebar, header, main content)
+4. Implement routing (Dashboard, Notes, Journals, Projects)
+5. Build API client service with custom hooks
+6. Create basic components (Button, Card, Input, etc.)
 
-4. **List & Search Commands**
-   - `pensieve list [folder]` - List notes in PARA folder
-   - `pensieve search --tag <tag>` - Search by tag
-   - `pensieve search --code inspiring` - Search by CODE criteria
+**Week 8: Feature Implementation**
+1. Dashboard with stats visualization
+2. Notes browser with PARA folder navigation
+3. Note editor with markdown preview
+4. Journal entry UI with habit tracking
+5. Project management interface
+6. Search functionality
+7. Progressive summarization visualization
 
-### Future Phases
+### Other Options (Deferred)
 
-- **Phase 2**: PARA organization commands (move, archive)
-- **Phase 3**: Search & navigation enhancements
-- **Phase 4**: Progressive summarization + JARVIS integration
-- **Phase 5**: Voice capture
-- **Phase 6**: Web backend API
-- **Phase 7-8**: Web frontend (React + Vite)
-- **Phase 9**: Export & polish
+**Option 2: JARVIS Integration** (Future - Phase 4)
+- AI-powered progressive summarization
+- Voice-guided features
+- Batch processing with Claude Code CLI
+
+**Option 3: Export & Polish** (Future - Phase 9)
+- Export to PDF/HTML/Markdown
+- Backup/restore functionality
+- Performance optimization
+
+**Note**: Voice capture will use OS-level solutions (macOS dictation, Windows Speech Recognition, mobile voice-to-text)
 
 ---
 
@@ -288,8 +409,11 @@ None - enhanced CLI commands complete!
 pensieve-origin/
 ├── IMPLEMENTATION_PLAN.md    # Master plan (1,825 lines) - PROTECTED
 ├── CLAUDE.md                  # Project guidance for Claude Code
-├── PROGRESS.md                # This file
+├── PROGRESS.md                # This file - Development progress tracker
 ├── plan.md                    # CODE methodology reference
+├── CLI_USER_MANUAL.md         # CLI user documentation (600+ lines)
+├── API_DOCUMENTATION.md       # REST API documentation (900+ lines)
+├── API_TEST_RESULTS.md        # API testing results
 ├── .gitignore                 # Git ignore rules
 ├── .env.example               # Environment template
 ├── vault/                     # Knowledge vault (PARA + journal)
@@ -303,6 +427,20 @@ pensieve-origin/
 │       ├── note.md
 │       ├── journal.md
 │       └── project.yaml
+├── web-ui/                    # Frontend (React + Vite) - TO BE CREATED
+│   ├── package.json
+│   ├── vite.config.ts
+│   ├── tsconfig.json
+│   ├── index.html
+│   ├── src/
+│   │   ├── main.tsx
+│   │   ├── App.tsx
+│   │   ├── api/              # API client
+│   │   ├── components/       # React components
+│   │   ├── pages/            # Page components
+│   │   ├── hooks/            # Custom hooks
+│   │   └── styles/           # CSS/Tailwind
+│   └── public/               # Static assets
 ├── _system/                   # System code and scripts
 │   ├── package.json           # Dependencies (350 packages)
 │   ├── tsconfig.json          # TypeScript configuration
@@ -320,8 +458,14 @@ pensieve-origin/
 │   │   │   └── utils/
 │   │   │       ├── frontmatterParser.ts  # YAML parsing
 │   │   │       ├── fileSystem.ts         # File operations
-│   │   │       └── dateUtils.ts          # Date utilities
-│   │   └── web/               # (Empty - future)
+│   │   │       ├── config.ts              # Configuration loader
+│   │   │       └── dateUtils.ts           # Date utilities
+│   │   └── web/                # Express REST API
+│   │       ├── server.ts       # Main server
+│   │       └── routes/
+│   │           ├── notes.ts    # Notes endpoints
+│   │           ├── journals.ts # Journals endpoints
+│   │           └── projects.ts # Projects endpoints
 │   ├── dist/                  # Compiled JavaScript
 │   │   ├── cli/
 │   │   │   └── index.js
@@ -415,4 +559,10 @@ pensieve-origin/
 
 ---
 
-**Next Action**: Implement enhanced CLI commands (Option 1) to make the system immediately usable.
+**Current Phase**: Web Frontend Development (Phase 7-8)
+
+**Next Immediate Actions**:
+1. Initialize Vite + React + TypeScript project in `web-ui/`
+2. Set up Tailwind CSS and shadcn/ui
+3. Create basic layout and routing structure
+4. Build API client to connect to http://localhost:3000
