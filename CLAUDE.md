@@ -35,12 +35,24 @@ The system is built around four sequential steps documented in `plan.md`:
 
 ### Technology Stack
 
-- **Backend**: Node.js/TypeScript
+**Backend:**
+- **Runtime**: Node.js 18+ with TypeScript 5.3
+- **API Server**: Express.js with 20+ REST endpoints
 - **Storage**: File-based (Markdown + YAML frontmatter)
-- **CLI**: Commander.js with rich TUI
-- **Web**: Express API + Vite/React frontend
-- **Voice**: Google Cloud TTS + Claude Code agents
-- **AI Integration**: Claude Code CLI (headless mode) for JARVIS agents
+- **CLI**: Commander.js with rich TUI (future implementation)
+
+**Frontend:**
+- **Framework**: React 18 + TypeScript
+- **Build Tool**: Vite 7.2 (fast HMR, ESM-based)
+- **Styling**: Tailwind CSS v4 (Vite plugin, no PostCSS)
+- **Routing**: React Router v6
+- **State**: React Context API (upgradeable to Zustand)
+- **UI Components**: Custom components with lucide-react icons
+
+**Voice & AI:**
+- **TTS**: Google Cloud Text-to-Speech API
+- **Voice Agents**: Claude Code CLI agents (JARVIS, voice-discussion)
+- **AI Integration**: Claude Code CLI (headless mode, max 3 concurrent)
 
 ### Critical Architectural Decision: Claude Code CLI vs API
 
@@ -71,6 +83,7 @@ const { stdout } = await execAsync(
 
 ```
 pensieve-origin/
+├── init.sh                     # 🎯 One-command setup script
 ├── vault/                      # Knowledge vault (PARA + Journal)
 │   ├── 0-inbox/               # Unsorted captures
 │   ├── 1-projects/            # Active projects (2-3 month timeframe)
@@ -79,16 +92,35 @@ pensieve-origin/
 │   ├── 4-archive/             # Completed projects
 │   ├── journal/               # Date-organized journal (journal/yyyy/MM/yyyyMMdd.md)
 │   └── templates/             # Note templates
-├── src/
-│   ├── core/                  # Business logic
-│   │   ├── models/           # Note, Journal, Project, Area models
-│   │   ├── services/         # NoteService, JournalService, JarvisService, etc.
-│   │   └── utils/            # ClaudeCodePool, frontmatterParser, etc.
-│   ├── cli/                   # CLI commands
-│   └── web/                   # Express server & API
-├── web-ui/                    # Vite + React frontend
-├── _system/script/            # System scripts (google_tts.sh)
-└── .claude/agents/            # JARVIS and voice agents
+├── _system/                    # Backend system
+│   ├── .env                   # Backend configuration (created by setup)
+│   ├── src/
+│   │   ├── core/              # Business logic
+│   │   │   ├── models/       # Note, Journal, Project models
+│   │   │   ├── services/     # NoteService, JournalService, ProjectService
+│   │   │   └── utils/        # frontmatterParser, fileSystem, dateUtils
+│   │   ├── cli/               # CLI commands
+│   │   └── web/               # Express REST API server
+│   │       ├── server.ts
+│   │       └── routes/       # notes.ts, journals.ts, projects.ts
+│   ├── dist/                  # Compiled JavaScript
+│   └── script/                # System scripts
+│       ├── google_tts.sh      # Text-to-Speech integration
+│       ├── setup-backend.sh   # Backend setup script
+│       ├── setup-frontend.sh  # Frontend setup script
+│       └── setup-gcloud.sh    # Google Cloud SDK setup
+├── web-ui/                     # React + Vite frontend
+│   ├── .env                   # Frontend configuration (created by setup)
+│   └── src/
+│       ├── api/               # API client (notes, journals, projects)
+│       ├── components/        # Layout, Sidebar, Header
+│       ├── pages/             # Dashboard, Notes
+│       ├── types/             # TypeScript type definitions
+│       └── lib/               # Utilities (cn, etc.)
+└── .claude/agents/             # JARVIS and voice agents
+    ├── jarvis-oral-summarizer_en.md
+    ├── jarvis-oral-summarizer_zh_Hant.md
+    └── voice-discussion.md
 ```
 
 ### PARA Organization
@@ -213,43 +245,82 @@ Four distillation layers (tracked in frontmatter):
 
 ---
 
-## Development Commands
+## Quick Start & Development Commands
 
-### When TypeScript Project is Initialized
+### Initial Setup (One-Time)
 
 ```bash
-# Development
-npm run dev              # Watch mode with tsx
-npm run build            # Compile TypeScript
-npm run test             # Run tests with Vitest
+# 🎯 Recommended: Automated setup (one command)
+./init.sh
 
-# CLI usage
+# Alternative: Individual component setup
+./_system/script/setup-gcloud.sh   # Google Cloud SDK only
+./_system/script/setup-backend.sh  # Backend only
+./_system/script/setup-frontend.sh # Frontend only
+```
+
+### Running the System
+
+**Backend API Server:**
+```bash
+cd _system
+npm run serve  # Starts on http://localhost:3000
+```
+
+**Frontend Dev Server:**
+```bash
+cd web-ui
+npm run dev    # Starts on http://localhost:5173
+```
+
+**Access Web UI:** Open browser to http://localhost:5173/
+
+### Development Commands
+
+**Backend (_system):**
+```bash
+npm run dev    # Watch mode with tsx (future)
+npm run build  # Compile TypeScript
+npm run test   # Run tests with Vitest
+npm run serve  # Start Express API
+```
+
+**Frontend (web-ui):**
+```bash
+npm run dev      # Start dev server with HMR
+npm run build    # Build for production
+npm run preview  # Preview production build
+```
+
+### CLI Usage (Future Implementation)
+
+```bash
 pensieve init                           # Initialize vault
 pensieve capture "text"                 # Quick capture
 pensieve journal                        # Open today's journal
 pensieve journal --date 2025-11-20      # Specific date
 pensieve distill summarize <id> --voice # JARVIS summary with TTS
 pensieve voice capture                  # Voice-to-text capture
-
-# Web server
-npm run serve            # Start Express API (port 3000)
-cd web-ui && npm run dev # Start Vite dev server (port 5173)
 ```
 
-### Current State (Pre-Implementation)
+### Testing & Utilities
 
 ```bash
+# Test Google TTS
+_system/script/google_tts.sh "Hello, testing TTS" "en-GB"
+_system/script/google_tts.sh "你好，測試語音" "cmn-TW"
+
 # View implementation plan
 cat IMPLEMENTATION_PLAN.md
 
 # View CODE methodology reference
 cat plan.md
 
-# Test Google TTS
-_system/script/google_tts.sh "Hello, testing TTS" "en-GB"
+# View API documentation
+cat API_DOCUMENTATION.md
 
-# Activate JARVIS for interactive testing
-# In Claude Code: "Hey JARVIS, summarize this note..."
+# View CLI user manual
+cat CLI_USER_MANUAL.md
 ```
 
 ---
@@ -307,6 +378,44 @@ const promptFile = await createPromptFile(trigger, content);
 - Pass user input directly to shell commands
 - Store sensitive data in frontmatter
 - Commit API keys or tokens
+
+### 5. Tailwind CSS v4 Best Practices
+
+**This project uses Tailwind CSS v4 with the Vite plugin (NOT PostCSS).**
+
+**Configuration:**
+
+`vite.config.ts`:
+```typescript
+import tailwindcss from '@tailwindcss/vite'
+
+export default defineConfig({
+  plugins: [
+    tailwindcss(),  // Must come before react()
+    react(),
+  ],
+})
+```
+
+`src/index.css`:
+```css
+@import "tailwindcss";  /* NOT @tailwind directives */
+```
+
+**Key Changes from v3:**
+- ❌ No `tailwind.config.js` file (config via CSS)
+- ❌ No `postcss.config.js` file (use Vite plugin)
+- ❌ No `@tailwind base/components/utilities` (use `@import`)
+- ✅ Automatic content detection (no manual paths)
+- ✅ 5x faster full builds, 100x faster incremental builds
+
+**If you see PostCSS errors:**
+```bash
+cd web-ui
+npm uninstall tailwindcss postcss autoprefixer
+npm install -D tailwindcss @tailwindcss/vite
+rm -f tailwind.config.js postcss.config.js
+```
 
 ---
 
@@ -394,26 +503,83 @@ eventSource.onmessage = (event) => {
 
 ---
 
-## Implementation Phases
+## Implementation Status
 
-See `IMPLEMENTATION_PLAN.md` for detailed 9-week timeline:
+See `IMPLEMENTATION_PLAN.md` for detailed 9-week timeline and `PROGRESS.md` for current status.
 
-1. **Week 1**: Foundation (CLI + basic note system)
-2. **Week 2**: PARA organization
-3. **Week 3**: Search & navigation
-4. **Week 4**: Progressive summarization + JARVIS
-5. **Week 5**: Voice capture
-6. **Week 6**: Web backend API
-7. **Week 7-8**: Web frontend
-8. **Week 9**: Export & polish
+### ✅ Completed Phases
 
-**Current Phase**: Pre-implementation (project planning complete)
+1. ✅ **Phase 1-2**: Foundation & PARA organization
+   - TypeScript project structure
+   - Core models (Note, Journal, Project)
+   - Services (NoteService, JournalService, ProjectService)
+   - PARA folder structure
+   - CLI commands (init, capture, journal, list, search, project)
+
+2. ✅ **Phase 6**: Web Backend API
+   - Express server with 20+ REST endpoints
+   - Notes API (CRUD, move, search)
+   - Journals API (CRUD, stats, streak)
+   - Projects API (CRUD, milestones, progress)
+   - Complete API documentation
+
+3. ✅ **Phase 7**: Web Frontend (MVP)
+   - React + Vite + TypeScript setup
+   - Tailwind CSS v4 integration
+   - Dashboard with stats cards
+   - PARA notes browser
+   - Sidebar navigation
+   - API client integration
+
+4. ✅ **Phase 0**: Installation & Setup
+   - Automated setup scripts (`init.sh`)
+   - Google Cloud SDK integration
+   - TTS configuration
+   - Development environment setup
+
+### 🚧 In Progress
+
+- **Phase 7 (cont.)**: Additional frontend features
+  - Note editor with Markdown preview
+  - Journal entry interface
+  - Project management interface
+  - Advanced search and filtering
+
+### 📋 Pending Phases
+
+4. **Phase 4**: Progressive summarization + JARVIS
+5. **Phase 5**: Voice capture integration
+6. **Phase 9**: Export & polish
+
+**Current Status**: Web UI MVP operational, ready for feature expansion
 
 ---
 
 ## Reference Documentation
 
-- `IMPLEMENTATION_PLAN.md` - Complete technical specification
+### Setup & Quick Start
+- `QUICKSTART.md` - Quick start guide with automated setup
+- `init.sh` - One-command installation script
+- `_system/script/setup-*.sh` - Individual component setup scripts
+
+### Architecture & Planning
+- `IMPLEMENTATION_PLAN.md` - Complete 9-week technical specification
+- `PROGRESS.md` - Current implementation status and completed tasks
 - `plan.md` - CODE methodology philosophy (Chinese)
+- `CLAUDE.md` - This file (project guidance for Claude Code)
+
+### API & CLI Documentation
+- `API_DOCUMENTATION.md` - REST API reference (20+ endpoints)
+- `API_TEST_RESULTS.md` - API testing results and examples
+- `CLI_USER_MANUAL.md` - CLI commands usage guide
+
+### Configuration Files
+- `_system/.env` - Backend configuration (vault path, TTS, ports)
+- `web-ui/.env` - Frontend configuration (API URL)
 - `.claude/agents/` - JARVIS and voice agent configurations
-- `_system/script/google_tts.sh` - TTS integration script
+
+### Scripts & Tools
+- `_system/script/google_tts.sh` - Text-to-Speech integration
+- `_system/script/setup-gcloud.sh` - Google Cloud SDK setup
+- `_system/script/setup-backend.sh` - Backend setup
+- `_system/script/setup-frontend.sh` - Frontend setup

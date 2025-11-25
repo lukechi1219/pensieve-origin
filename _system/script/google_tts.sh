@@ -38,6 +38,7 @@ fi
 
 # 執行 Python TTS
 python3 - << PYTHON_SCRIPT
+# -*- coding: utf-8 -*-
 import subprocess
 import json
 import base64

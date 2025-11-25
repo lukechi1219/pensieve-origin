@@ -5,6 +5,7 @@ import { config } from '../core/utils/config.js';
 import notesRouter from './routes/notes.js';
 import journalsRouter from './routes/journals.js';
 import projectsRouter from './routes/projects.js';
+import jarvisRouter from './routes/jarvis.js';
 
 dotenv.config();
 
@@ -35,6 +36,7 @@ app.get('/health', (req: Request, res: Response) => {
 app.use('/api/notes', notesRouter);
 app.use('/api/journals', journalsRouter);
 app.use('/api/projects', projectsRouter);
+app.use('/api/jarvis', jarvisRouter);
 
 // 404 handler
 app.use((req: Request, res: Response) => {
@@ -69,6 +71,10 @@ app.listen(port, () => {
   console.log(`   GET    /api/journals/stats`);
   console.log(`   GET    /api/projects`);
   console.log(`   POST   /api/projects`);
+  console.log(`   POST   /api/jarvis/summarize/:id`);
+  console.log(`   POST   /api/jarvis/distill/:id`);
+  console.log(`   POST   /api/jarvis/batch-summarize`);
+  console.log(`   GET    /api/jarvis/distillation-levels`);
   console.log(`\nPress Ctrl+C to stop`);
 });
 

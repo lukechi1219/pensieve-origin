@@ -3,7 +3,7 @@ import { formatDateTime } from '../utils/dateUtils';
 export interface DistillationHistoryEntry {
   level: number;
   date: string;
-  type: 'captured' | 'highlighted' | 'summarized' | 'remixed';
+  type: 'captured' | 'highlighted' | 'summarized' | 'remixed' | 'jarvis_distillation';
   summary?: string;
 }
 
