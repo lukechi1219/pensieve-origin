@@ -588,3 +588,97 @@ See `IMPLEMENTATION_PLAN.md` for detailed 9-week timeline and `PROGRESS.md` for 
 - `_system/script/setup-gcloud.sh` - Google Cloud SDK setup
 - `_system/script/setup-backend.sh` - Backend setup
 - `_system/script/setup-frontend.sh` - Frontend setup
+
+---
+
+## License Policy
+
+**This project is licensed under the GNU Affero General Public License v3.0 (AGPL-3.0).**
+
+### License Requirements
+
+All code contributions, documentation, and modifications to this project must comply with AGPL-3.0 terms.
+
+**Core Principles:**
+- ✅ **Freedom to Use**: Anyone can use this software for any purpose
+- ✅ **Freedom to Study**: Source code must remain accessible
+- ✅ **Freedom to Modify**: Anyone can modify the code
+- ✅ **Freedom to Distribute**: Modified versions can be shared
+- ⚠️ **Copyleft**: All derivative works must also be AGPL-3.0
+- ⚠️ **Network Copyleft**: If you run a modified version as a network service (e.g., web server), you **must** provide source code to users
+
+### When Adding New Code
+
+**Always ensure:**
+1. New files include appropriate copyright headers (optional but recommended)
+2. All new dependencies are compatible with AGPL-3.0
+3. No proprietary or incompatible licenses are introduced
+4. `package.json` files specify `"license": "AGPL-3.0"`
+
+### Compatible Licenses for Dependencies
+
+✅ **Permissive licenses** (can be included in AGPL projects):
+- MIT
+- Apache 2.0
+- BSD (2-clause, 3-clause)
+- ISC
+- CC0
+
+✅ **Copyleft licenses** (compatible):
+- GPL v3.0
+- LGPL v3.0
+- AGPL v3.0
+
+❌ **Incompatible licenses** (DO NOT USE):
+- Proprietary/closed-source
+- "Non-commercial only" licenses
+- GPL v2.0 (without "or later" clause)
+- Creative Commons Non-Commercial (CC BY-NC)
+
+### Network Service Obligations (Section 13 of AGPL)
+
+**IMPORTANT**: If you deploy a modified version of Pensieve as a web service:
+
+1. **You MUST provide source code access** to all users who interact with the service
+2. Common ways to comply:
+   - Add a "Source Code" link in the web UI footer
+   - Provide a public Git repository URL
+   - Offer a downloadable archive of the source
+3. The source code must be the **actual version running on the server**, not an older version
+4. This applies even if you only distribute access (not the software itself)
+
+### Example Compliance
+
+**Good - Web UI Footer:**
+```typescript
+<footer>
+  <a href="https://github.com/yourname/pensieve-origin">
+    Source Code (AGPL-3.0)
+  </a>
+</footer>
+```
+
+**Good - API Response Header:**
+```typescript
+res.setHeader('X-Source-Code', 'https://github.com/yourname/pensieve-origin');
+```
+
+### Third-Party Integrations
+
+When integrating with external services (Claude API, Google TTS, etc.):
+- ✅ Using APIs is allowed (doesn't affect license)
+- ✅ Including API client libraries (check their licenses)
+- ❌ Including proprietary SDKs that restrict modification
+
+### Questions About Licensing?
+
+- **Full License Text**: See [LICENSE](LICENSE) file in the project root
+- **Official AGPL FAQ**: <https://www.gnu.org/licenses/gpl-faq.html#AGPLv3>
+- **Why AGPL?**: Ensures web services remain open source (prevents "SaaS loophole")
+
+### Enforcement
+
+Contributors acknowledge that:
+1. All contributions are made under AGPL-3.0
+2. You have the right to contribute the code
+3. Contributions may be used, modified, and distributed under AGPL-3.0 by anyone
