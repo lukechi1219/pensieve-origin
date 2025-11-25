@@ -4,6 +4,16 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ---
 
+## 🚫 Protected Files
+
+**DO NOT MODIFY** the following files unless the user explicitly removes this rule:
+
+- `IMPLEMENTATION_PLAN.md` - The master implementation plan is read-only. Reference it for guidance, but do not edit it.
+
+If you need to suggest changes to the implementation plan, inform the user and ask for permission first.
+
+---
+
 ## Project Overview
 
 **Pensieve** is a second brain knowledge management system implementing Tiago Forte's **CODE methodology** (Capture, Organize, Distill, Express). The system combines CLI tools, web UI, and voice agents to create a comprehensive personal knowledge management platform.
