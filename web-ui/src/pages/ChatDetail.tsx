@@ -34,19 +34,34 @@ export default function ChatDetail() {
   };
 
   const handleSendMessage = async () => {
-    if (!id || !newMessage.trim() || sending) return;
+    if (!id || !newMessage.trim() || sending || !chat) return;
 
     const messageToSend = newMessage.trim();
     setNewMessage(''); // Clear input immediately
 
+    // Detect language based on message content (simple heuristic)
+    const hasChinese = /[\u4e00-\u9fa5]/.test(messageToSend);
+    const language = hasChinese ? 'zh' : 'en';
+
+    // Optimistically add user message to UI immediately
+    const optimisticUserMessage = {
+      role: 'user' as const,
+      content: messageToSend,
+      timestamp: new Date().toISOString(),
+    };
+
+    setChat({
+      ...chat,
+      messages: [...chat.messages, optimisticUserMessage],
+      messageCount: chat.messages.length + 1,
+      modified: new Date().toISOString(),
+    });
+
     try {
       setSending(true);
-      // Detect language based on message content (simple heuristic)
-      const hasChinese = /[\u4e00-\u9fa5]/.test(messageToSend);
-      const language = hasChinese ? 'zh' : 'en';
 
       const updatedChat = await chatsApi.addMessage(id, messageToSend, language, voiceMode);
-      setChat(updatedChat); // Update chat with new messages
+      setChat(updatedChat); // Update chat with server response (includes JARVIS reply)
 
       // If voice mode is enabled, play the assistant's response
       if (voiceMode && updatedChat.messages.length > 0) {
@@ -62,7 +77,13 @@ export default function ChatDetail() {
       }
     } catch (err: any) {
       setError(err.message || 'Failed to send message');
-      setNewMessage(messageToSend); // Restore message on error
+      // Remove optimistic message on error and restore input
+      setChat({
+        ...chat,
+        messages: chat.messages,
+        messageCount: chat.messages.length,
+      });
+      setNewMessage(messageToSend);
     } finally {
       setSending(false);
     }

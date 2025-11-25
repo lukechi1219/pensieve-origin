@@ -9,18 +9,22 @@ import {
   MessageSquare
 } from 'lucide-react';
 import { cn } from '../lib/utils';
-
-const navigation = [
-  { name: '儀表板', href: '/', icon: LayoutDashboard },
-  { name: '收件匣', href: '/notes/inbox', icon: Inbox },
-  { name: '專案', href: '/projects', icon: FolderKanban },
-  { name: '領域', href: '/notes/areas', icon: FileText },
-  { name: '資源', href: '/notes/resources', icon: Archive },
-  { name: '日記', href: '/journals', icon: BookOpen },
-  { name: '對話', href: '/chats', icon: MessageSquare },
-];
+import { useI18n } from '../i18n/I18nContext';
+import LanguageSwitcher from './LanguageSwitcher';
 
 export default function Sidebar() {
+  const { t } = useI18n();
+
+  const navigation = [
+    { name: t.nav.dashboard, href: '/', icon: LayoutDashboard },
+    { name: t.nav.inbox, href: '/notes/inbox', icon: Inbox },
+    { name: t.nav.projects, href: '/projects', icon: FolderKanban },
+    { name: t.nav.areas, href: '/notes/areas', icon: FileText },
+    { name: t.nav.resources, href: '/notes/resources', icon: Archive },
+    { name: t.nav.journal, href: '/journals', icon: BookOpen },
+    { name: t.nav.chat, href: '/chats', icon: MessageSquare },
+  ];
+
   return (
     <div className="w-64 bg-white border-r border-gray-200 flex flex-col">
       {/* Logo */}
@@ -33,7 +37,7 @@ export default function Sidebar() {
       <nav className="flex-1 p-4 space-y-1">
         {navigation.map((item) => (
           <NavLink
-            key={item.name}
+            key={item.href}
             to={item.href}
             className={({ isActive }) =>
               cn(
@@ -51,7 +55,8 @@ export default function Sidebar() {
       </nav>
 
       {/* Footer */}
-      <div className="p-4 border-t border-gray-200">
+      <div className="p-4 border-t border-gray-200 space-y-3">
+        <LanguageSwitcher />
         <div className="text-xs text-gray-500 text-center">
           CODE 方法論
           <div className="mt-1">Capture • Organize • Distill • Express</div>

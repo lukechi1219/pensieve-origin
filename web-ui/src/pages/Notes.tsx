@@ -3,16 +3,10 @@ import { useParams, Link } from 'react-router-dom';
 import { notesApi } from '../api';
 import type { Note } from '../types';
 import { FileText, Tag } from 'lucide-react';
-
-const PARA_FOLDERS = {
-  inbox: '收件匣',
-  projects: '專案',
-  areas: '領域',
-  resources: '資源',
-  archive: '封存',
-};
+import { useI18n } from '../i18n/I18nContext';
 
 export default function Notes() {
+  const { t } = useI18n();
   const { folder = 'inbox' } = useParams<{ folder: string }>();
   const [notes, setNotes] = useState<Note[]>([]);
   const [loading, setLoading] = useState(true);
@@ -36,20 +30,22 @@ export default function Notes() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-full">
-        <div className="text-gray-500">載入中...</div>
+        <div className="text-gray-500">{t.notes.loading}</div>
       </div>
     );
   }
+
+  const folderName = t.notes.folders[folder as keyof typeof t.notes.folders] || folder;
 
   return (
     <div className="space-y-6">
       {/* Page header */}
       <div>
         <h1 className="text-3xl font-bold text-gray-900">
-          {PARA_FOLDERS[folder as keyof typeof PARA_FOLDERS] || folder}
+          {folderName}
         </h1>
         <p className="mt-2 text-gray-600">
-          共 {notes.length} 則筆記
+          {t.notes.count(notes.length)}
         </p>
       </div>
 
@@ -57,7 +53,7 @@ export default function Notes() {
       {notes.length === 0 ? (
         <div className="bg-white rounded-lg shadow p-12 text-center">
           <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-          <p className="text-gray-500">這裡還沒有筆記</p>
+          <p className="text-gray-500">{t.notes.noNotes}</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -75,11 +71,13 @@ interface NoteCardProps {
 }
 
 function NoteCard({ note }: NoteCardProps) {
+  const { t } = useI18n();
+
   const codeFlags = [
-    note.isInspiring && { label: '啟發', color: 'bg-yellow-100 text-yellow-800' },
-    note.isUseful && { label: '實用', color: 'bg-green-100 text-green-800' },
-    note.isPersonal && { label: '個人', color: 'bg-blue-100 text-blue-800' },
-    note.isSurprising && { label: '驚奇', color: 'bg-purple-100 text-purple-800' },
+    note.isInspiring && { label: t.notes.codeFlags.inspiring, color: 'bg-yellow-100 text-yellow-800' },
+    note.isUseful && { label: t.notes.codeFlags.useful, color: 'bg-green-100 text-green-800' },
+    note.isPersonal && { label: t.notes.codeFlags.personal, color: 'bg-blue-100 text-blue-800' },
+    note.isSurprising && { label: t.notes.codeFlags.surprising, color: 'bg-purple-100 text-purple-800' },
   ].filter(Boolean);
 
   return (

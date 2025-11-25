@@ -3,8 +3,10 @@ import { Link } from 'react-router-dom';
 import { journalsApi, notesApi, projectsApi } from '../api';
 import type { JournalStats, Note, Project } from '../types';
 import { FileText, BookOpen, FolderKanban, TrendingUp, Flame } from 'lucide-react';
+import { useI18n } from '../i18n/I18nContext';
 
 export default function Dashboard() {
+  const { t } = useI18n();
   const [stats, setStats] = useState<JournalStats | null>(null);
   const [recentNotes, setRecentNotes] = useState<Note[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
@@ -35,7 +37,7 @@ export default function Dashboard() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-full">
-        <div className="text-gray-500">載入中...</div>
+        <div className="text-gray-500">{t.common.loading}</div>
       </div>
     );
   }
@@ -44,35 +46,35 @@ export default function Dashboard() {
     <div className="space-y-6">
       {/* Page header */}
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">儀表板</h1>
-        <p className="mt-2 text-gray-600">歡迎回到您的第二大腦</p>
+        <h1 className="text-3xl font-bold text-gray-900">{t.dashboard.title}</h1>
+        <p className="mt-2 text-gray-600">{t.dashboard.welcome}</p>
       </div>
 
       {/* Stats cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard
-          title="收件匣"
+          title={t.dashboard.stats.inbox}
           value={recentNotes.length}
           icon={FileText}
           color="blue"
           link="/notes/inbox"
         />
         <StatCard
-          title="活躍專案"
+          title={t.dashboard.stats.activeProjects}
           value={projects.length}
           icon={FolderKanban}
           color="purple"
           link="/projects"
         />
         <StatCard
-          title="日記連續天數"
+          title={t.dashboard.stats.journalStreak}
           value={stats?.currentStreak || 0}
           icon={Flame}
           color="orange"
           link="/journals"
         />
         <StatCard
-          title="日記總數"
+          title={t.dashboard.stats.journalTotal}
           value={stats?.totalEntries || 0}
           icon={BookOpen}
           color="green"
@@ -83,16 +85,16 @@ export default function Dashboard() {
       {/* Recent notes */}
       <div className="bg-white rounded-lg shadow p-6">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-semibold text-gray-900">收件匣</h2>
+          <h2 className="text-xl font-semibold text-gray-900">{t.dashboard.stats.inbox}</h2>
           <Link
             to="/notes/inbox"
             className="text-sm text-blue-600 hover:text-blue-700 font-medium"
           >
-            查看全部 →
+            {t.dashboard.viewAll}
           </Link>
         </div>
         {recentNotes.length === 0 ? (
-          <p className="text-gray-500 text-center py-8">收件匣是空的</p>
+          <p className="text-gray-500 text-center py-8">{t.dashboard.emptyInbox}</p>
         ) : (
           <div className="space-y-3">
             {recentNotes.map((note) => (
@@ -126,16 +128,16 @@ export default function Dashboard() {
       {/* Active projects */}
       <div className="bg-white rounded-lg shadow p-6">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-semibold text-gray-900">活躍專案</h2>
+          <h2 className="text-xl font-semibold text-gray-900">{t.dashboard.stats.activeProjects}</h2>
           <Link
             to="/projects"
             className="text-sm text-blue-600 hover:text-blue-700 font-medium"
           >
-            查看全部 →
+            {t.dashboard.viewAll}
           </Link>
         </div>
         {projects.length === 0 ? (
-          <p className="text-gray-500 text-center py-8">沒有活躍的專案</p>
+          <p className="text-gray-500 text-center py-8">{t.dashboard.noActiveProjects}</p>
         ) : (
           <div className="space-y-4">
             {projects.slice(0, 5).map((project) => (

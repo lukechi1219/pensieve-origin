@@ -3,8 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import { MessageSquare, Plus, Trash2, Clock } from 'lucide-react';
 import { chatsApi } from '../api/chats';
 import type { Chat } from '../types';
+import { useI18n } from '../i18n/I18nContext';
 
 export default function Chats() {
+  const { t, locale } = useI18n();
   const [chats, setChats] = useState<Chat[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>('');
@@ -46,7 +48,7 @@ export default function Chats() {
 
   const handleDeleteChat = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    if (!confirm('確定要刪除此對話嗎？')) return;
+    if (!confirm(t.chat.confirmDelete)) return;
 
     try {
       await chatsApi.delete(id);
@@ -62,16 +64,16 @@ export default function Chats() {
     const diffMs = now.getTime() - date.getTime();
     const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
 
-    if (diffDays === 0) return '今天';
-    if (diffDays === 1) return '昨天';
-    if (diffDays < 7) return `${diffDays} 天前`;
-    return date.toLocaleDateString('zh-TW');
+    if (diffDays === 0) return t.common.today;
+    if (diffDays === 1) return t.common.yesterday;
+    if (diffDays < 7) return t.common.daysAgo(diffDays);
+    return date.toLocaleDateString(locale === 'zh_Hant' ? 'zh-TW' : 'en-US');
   };
 
   if (loading) {
     return (
       <div className="flex items-center justify-center h-full">
-        <div className="text-gray-500">載入中...</div>
+        <div className="text-gray-500">{t.common.loading}</div>
       </div>
     );
   }
@@ -82,9 +84,9 @@ export default function Chats() {
       <div className="bg-white border-b border-gray-200 px-8 py-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">對話記錄</h1>
+            <h1 className="text-2xl font-bold text-gray-900">{t.chat.title}</h1>
             <p className="text-sm text-gray-500 mt-1">
-              共 {chats?.length || 0} 個對話
+              {chats?.length || 0} {t.chat.title}
             </p>
           </div>
           <button
@@ -92,7 +94,7 @@ export default function Chats() {
             className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
           >
             <Plus className="w-5 h-5" />
-            新對話
+            {t.chat.newChat}
           </button>
         </div>
       </div>
@@ -109,12 +111,12 @@ export default function Chats() {
         {!chats || chats.length === 0 ? (
           <div className="text-center py-12">
             <MessageSquare className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <p className="text-gray-500">尚無對話記錄</p>
+            <p className="text-gray-500">{t.chat.noChats}</p>
             <button
               onClick={() => setShowNewChatDialog(true)}
               className="mt-4 text-blue-600 hover:text-blue-700"
             >
-              建立第一個對話
+              {t.chat.createFirst}
             </button>
           </div>
         ) : (
@@ -132,7 +134,7 @@ export default function Chats() {
                   <button
                     onClick={(e) => handleDeleteChat(chat.id, e)}
                     className="text-gray-400 hover:text-red-600 transition-colors"
-                    title="刪除對話"
+                    title={t.chat.deleteChat}
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
@@ -146,7 +148,7 @@ export default function Chats() {
                   <div className="flex items-center gap-4">
                     <span className="flex items-center gap-1">
                       <MessageSquare className="w-3 h-3" />
-                      {chat.messageCount} 則訊息
+                      {chat.messageCount} {t.chat.messages}
                     </span>
                     <span className="flex items-center gap-1">
                       <Clock className="w-3 h-3" />
@@ -177,13 +179,13 @@ export default function Chats() {
       {showNewChatDialog && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-md">
-            <h2 className="text-xl font-bold text-gray-900 mb-4">建立新對話</h2>
+            <h2 className="text-xl font-bold text-gray-900 mb-4">{t.chat.newChat}</h2>
             <input
               type="text"
               value={newChatTitle}
               onChange={(e) => setNewChatTitle(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleCreateChat()}
-              placeholder="對話標題"
+              placeholder={t.chat.newChat}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               autoFocus
             />
@@ -193,7 +195,7 @@ export default function Chats() {
                 disabled={!newChatTitle.trim()}
                 className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                建立
+                {t.common.confirm}
               </button>
               <button
                 onClick={() => {
@@ -202,7 +204,7 @@ export default function Chats() {
                 }}
                 className="flex-1 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
               >
-                取消
+                {t.common.cancel}
               </button>
             </div>
           </div>
