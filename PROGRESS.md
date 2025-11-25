@@ -450,7 +450,40 @@ pensieve project progress <name> <percent>         # Update progress
 - [x] Note creation tested (20251125212533)
 - [x] Project detail pages working
 
-**Status**: 🎉 **Web UI MVP Complete and Operational**
+**Internationalization (i18n)** ✅ (2025-11-26)
+- [x] Created i18n infrastructure with React Context
+  - `i18n/I18nContext.tsx` - Context provider with localStorage persistence
+  - `i18n/translations.ts` - Comprehensive translations (English + Traditional Chinese)
+  - Browser language detection on initial load
+  - Persistent language preference
+- [x] Implemented LanguageSwitcher component
+  - Toggle between English and 繁體中文
+  - Integrated into sidebar footer
+  - Icons and visual feedback
+- [x] Internationalized all pages:
+  - Dashboard - Stats cards, sections, empty states
+  - Chats - List, messages, date formatting
+  - Notes - Folder names, CODE flags, note counts
+  - Journals - Stats, loading states, coming soon message
+  - Projects - Status labels, progress, deadline formatting
+- [x] Implemented locale-aware features:
+  - Date formatting (`toLocaleDateString` with locale)
+  - Dynamic translations (note counts, days ago)
+  - Function-based translations for dynamic content
+- [x] Fixed TypeScript type system issues:
+  - Used type-only imports (`import type`)
+  - Flexible locale types: `(typeof translations)[Locale]`
+  - Maintained full type safety
+- [x] Translation coverage:
+  - Navigation menu
+  - All page titles and subtitles
+  - CODE flags (Inspiring, Useful, Personal, Surprising)
+  - PARA folder names (Inbox, Projects, Areas, Resources, Archive)
+  - Project status labels (Active, Completed, Archived)
+  - Common UI elements (loading, buttons, empty states)
+  - Time-relative formatting (today, yesterday, days ago)
+
+**Status**: 🎉 **Web UI MVP Complete and Operational with Full i18n Support**
 
 ---
 

@@ -371,6 +371,10 @@ Access the web UI at **http://localhost:5173/** (after starting both servers)
 - ✅ **Note Cards**: Display notes with tags, CODE flags, distillation levels
 - ✅ **Responsive Layout**: Sidebar navigation with modern UI
 - ✅ **Real-time Data**: Connected to live API backend
+- ✅ **Internationalization (i18n)**: Full bilingual support (English / 繁體中文)
+  - Language switcher in sidebar footer
+  - Persistent language preference
+  - Locale-aware date formatting
 
 **Coming Soon**:
 - 📝 Note editor with Markdown preview

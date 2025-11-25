@@ -530,6 +530,11 @@ See `IMPLEMENTATION_PLAN.md` for detailed 9-week timeline and `PROGRESS.md` for 
    - PARA notes browser
    - Sidebar navigation
    - API client integration
+   - **Internationalization (i18n)** - Full bilingual support
+     - English and Traditional Chinese (繁體中文)
+     - Language switcher component
+     - Locale-aware date formatting
+     - React Context with localStorage persistence
 
 4. ✅ **Phase 0**: Installation & Setup
    - Automated setup scripts (`init.sh`)
