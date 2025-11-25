@@ -658,3 +658,19 @@ Then visit http://localhost:5173/ in your browser.
 Start with imperfect captures. Refine opportunistically. Create relentlessly.
 
 Welcome to your Pensieve journey!
+
+---
+
+## License
+
+This project is licensed under the **GNU Affero General Public License v3.0 (AGPL-3.0)**.
+
+See the [LICENSE](LICENSE) file for full details.
+
+**Key Points**:
+- ✅ Free to use, modify, and distribute
+- ✅ Must share source code with users
+- ✅ Network copyleft: If you run a modified version as a web service, you must make the source code available to users
+- ❌ Cannot create proprietary/closed-source versions
+
+For more information, see <https://www.gnu.org/licenses/agpl-3.0.html>

@@ -293,4 +293,8 @@ When adding new features:
 
 ## License
 
-MIT
+AGPL-3.0 - See [LICENSE](../LICENSE) for details.
+
+This program is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+
+**Important**: If you modify this software and make it available over a network (e.g., as a web service), you must make the source code of your modified version available to users.
