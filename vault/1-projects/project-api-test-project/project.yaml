@@ -1,0 +1,23 @@
+name: api-test-project
+status: active
+created: '2025-11-25'
+deadline: '2026-01-25'
+completion_date: null
+description: Testing project creation via API
+goal: ''
+success_criteria: []
+related_areas: []
+tags: []
+notes: ''
+progress:
+  percent_complete: 25
+  last_updated: '2025-11-25'
+  milestones:
+    - name: Initial MVP
+      due_date: '2025-12-15'
+      completed: false
+archive:
+  archived: false
+  archive_date: null
+  archive_reason: ''
+  lessons_learned: ''

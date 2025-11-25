@@ -1,0 +1,20 @@
+name: second-brain
+status: active
+created: '2025-11-25'
+deadline: '2026-01-25'
+completion_date: null
+description: Build a comprehensive second brain system
+goal: ''
+success_criteria: []
+related_areas: []
+tags: []
+notes: ''
+progress:
+  percent_complete: 0
+  last_updated: '2025-11-25'
+  milestones: []
+archive:
+  archived: false
+  archive_date: null
+  archive_reason: ''
+  lessons_learned: ''
