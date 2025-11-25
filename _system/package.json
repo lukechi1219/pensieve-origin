@@ -1,0 +1,58 @@
+{
+  "name": "pensieve",
+  "version": "0.1.0",
+  "description": "A second brain knowledge management system implementing Tiago Forte's CODE methodology",
+  "main": "dist/index.js",
+  "bin": {
+    "pensieve": "./dist/cli/index.js"
+  },
+  "scripts": {
+    "dev": "tsx watch src/cli/index.ts",
+    "build": "tsc -p .",
+    "start": "node dist/cli/index.js",
+    "test": "vitest",
+    "test:watch": "vitest --watch",
+    "serve": "node dist/web/server.js",
+    "lint": "eslint src --ext .ts",
+    "format": "prettier --write \"src/**/*.ts\""
+  },
+  "keywords": [
+    "second-brain",
+    "knowledge-management",
+    "CODE",
+    "PARA",
+    "notes",
+    "journaling"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "commander": "^11.1.0",
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "gray-matter": "^4.0.3",
+    "js-yaml": "^4.1.0",
+    "date-fns": "^3.0.0",
+    "chalk": "^4.1.2",
+    "ora": "^5.4.1",
+    "inquirer": "^8.2.6"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "@types/express": "^4.17.21",
+    "@types/cors": "^2.8.17",
+    "@types/js-yaml": "^4.0.9",
+    "@types/inquirer": "^8.2.10",
+    "typescript": "^5.3.0",
+    "tsx": "^4.7.0",
+    "vitest": "^1.1.0",
+    "eslint": "^8.55.0",
+    "@typescript-eslint/eslint-plugin": "^6.15.0",
+    "@typescript-eslint/parser": "^6.15.0",
+    "prettier": "^3.1.1"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
