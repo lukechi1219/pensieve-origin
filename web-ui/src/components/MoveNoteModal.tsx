@@ -1,15 +1,20 @@
-import React, { useState } from 'react';
-import { X, Folder } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { X, Folder, ChevronRight } from 'lucide-react';
+import { projectsApi } from '../api';
+import type { Project } from '../types';
 
 interface MoveNoteModalProps {
   isOpen: boolean;
   onClose: () => void;
   currentFolder: string;
-  onMove: (targetFolder: string) => void;
+  onMove: (targetFolder: string, subPath?: string) => void;
 }
 
 const MoveNoteModal: React.FC<MoveNoteModalProps> = ({ isOpen, onClose, currentFolder, onMove }) => {
   const [selectedFolder, setSelectedFolder] = useState<string>(currentFolder);
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [selectedProject, setSelectedProject] = useState<string>('');
+  const [loadingProjects, setLoadingProjects] = useState(false);
 
   const folders = [
     { value: 'inbox', label: '收件匣 (Inbox)' },
@@ -18,6 +23,26 @@ const MoveNoteModal: React.FC<MoveNoteModalProps> = ({ isOpen, onClose, currentF
     { value: 'resources', label: '資源 (Resources)' },
     { value: 'archive', label: '封存 (Archive)' },
   ];
+
+  useEffect(() => {
+    if (selectedFolder === 'projects' && projects.length === 0) {
+      setLoadingProjects(true);
+      projectsApi.list()
+        .then(res => setProjects(res.items))
+        .catch(console.error)
+        .finally(() => setLoadingProjects(false));
+    }
+  }, [selectedFolder]);
+
+  const handleMove = () => {
+    if (selectedFolder === 'projects' && selectedProject) {
+      // Format: project-name/notes
+      const subPath = `project-${selectedProject}/notes`;
+      onMove(selectedFolder, subPath);
+    } else {
+      onMove(selectedFolder);
+    }
+  };
 
   if (!isOpen) return null;
 
@@ -35,21 +60,52 @@ const MoveNoteModal: React.FC<MoveNoteModalProps> = ({ isOpen, onClose, currentF
         </div>
         
         <div className="p-6 space-y-4">
-          <p className="text-gray-700">選擇一個目標資料夾：</p>
           <div className="space-y-3">
             {folders.map(folder => (
-              <label key={folder.value} className="flex items-center space-x-3 cursor-pointer p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-                <input
-                  type="radio"
-                  name="targetFolder"
-                  value={folder.value}
-                  checked={selectedFolder === folder.value}
-                  onChange={(e) => setSelectedFolder(e.target.value)}
-                  className="form-radio h-4 w-4 text-blue-600 focus:ring-blue-500"
-                />
-                <Folder className="h-5 w-5 text-gray-500" />
-                <span className="text-gray-800 font-medium">{folder.label}</span>
-              </label>
+              <div key={folder.value} className="space-y-2">
+                <label className={`flex items-center space-x-3 cursor-pointer p-3 border rounded-lg transition-colors ${
+                  selectedFolder === folder.value 
+                    ? 'border-blue-500 bg-blue-50' 
+                    : 'border-gray-200 hover:bg-gray-50'
+                }`}>
+                  <input
+                    type="radio"
+                    name="targetFolder"
+                    value={folder.value}
+                    checked={selectedFolder === folder.value}
+                    onChange={(e) => setSelectedFolder(e.target.value)}
+                    className="form-radio h-4 w-4 text-blue-600 focus:ring-blue-500"
+                  />
+                  <Folder className={`h-5 w-5 ${selectedFolder === folder.value ? 'text-blue-600' : 'text-gray-500'}`} />
+                  <span className={`font-medium ${selectedFolder === folder.value ? 'text-blue-900' : 'text-gray-800'}`}>
+                    {folder.label}
+                  </span>
+                </label>
+
+                {/* Sub-selection for Projects */}
+                {folder.value === 'projects' && selectedFolder === 'projects' && (
+                  <div className="ml-8 pl-4 border-l-2 border-gray-100 animate-in slide-in-from-top-2">
+                    {loadingProjects ? (
+                      <p className="text-sm text-gray-500 py-2">載入專案中...</p>
+                    ) : projects.length > 0 ? (
+                      <select
+                        value={selectedProject}
+                        onChange={(e) => setSelectedProject(e.target.value)}
+                        className="w-full p-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+                      >
+                        <option value="">選擇專案...</option>
+                        {projects.map(project => (
+                          <option key={project.name} value={project.name}>
+                            {project.name}
+                          </option>
+                        ))}
+                      </select>
+                    ) : (
+                      <p className="text-sm text-gray-500 py-2">沒有可用的專案</p>
+                    )}
+                  </div>
+                )}
+              </div>
             ))}
           </div>
         </div>
@@ -62,8 +118,11 @@ const MoveNoteModal: React.FC<MoveNoteModalProps> = ({ isOpen, onClose, currentF
             取消
           </button>
           <button
-            onClick={() => onMove(selectedFolder)}
-            disabled={selectedFolder === currentFolder}
+            onClick={handleMove}
+            disabled={
+              (selectedFolder === currentFolder && !selectedProject) || 
+              (selectedFolder === 'projects' && !selectedProject)
+            }
             className="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
           >
             移動

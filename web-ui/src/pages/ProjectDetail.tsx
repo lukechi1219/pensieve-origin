@@ -331,67 +331,66 @@ export default function ProjectDetail() {
             )}
           </div>
 
-          {/* Scrollable Milestones List */}
-          <div className="flex-1 overflow-y-auto p-6">
-            <div className="space-y-3 max-w-3xl mx-auto"> {/* Added max-w-3xl and mx-auto */}
-              {filteredMilestones.length === 0 ? (
-                <div className="text-center py-12 text-gray-500 bg-gray-50 rounded-lg border border-dashed border-gray-200">
-                  <p>沒有符合條件的里程碑</p>
-                </div>
-              ) : (
-                filteredMilestones.map((milestone, index) => (
-                  <div
-                    key={index}
-                    className={`flex items-start p-4 border rounded-lg transition-all group ${
-                      milestone.completed 
-                        ? 'bg-gray-50 border-gray-100 opacity-75' 
-                        : 'bg-white border-gray-200 hover:border-blue-300 hover:shadow-md'
-                    }`}
-                  >
-                    <button
-                      onClick={() => handleMilestoneToggle(milestone.name || milestone.title || '', milestone.completed)}
-                      disabled={milestone.completed}
-                      className={`mr-4 mt-1 flex-shrink-0 transition-colors ${
-                        milestone.completed ? 'cursor-default' : 'cursor-pointer hover:text-green-600'
-                      }`}
-                    >
-                      {milestone.completed ? (
-                        <CheckCircle className="h-6 w-6 text-green-500" />
-                      ) : (
-                        <Circle className="h-6 w-6 text-gray-300 group-hover:text-blue-400" />
-                      )}
-                    </button>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2">
-                        <h3 className={`font-medium truncate text-base ${milestone.completed ? 'text-gray-500 line-through' : 'text-gray-900'}`}>
-                          {milestone.name || milestone.title}
-                        </h3>
-                        {milestone.due_date && (
-                          <span className={`flex-shrink-0 text-xs px-2.5 py-1 rounded-full whitespace-nowrap font-medium ${
-                            new Date(milestone.due_date) < new Date() && !milestone.completed
-                              ? 'bg-red-100 text-red-700'
-                              : 'bg-gray-100 text-gray-600'
-                          }`}>
-                            {new Date(milestone.due_date).toLocaleDateString('zh-TW')}
-                          </span>
+                    {/* Scrollable Milestones List */}
+                    <div className="flex-1 overflow-y-auto p-6">
+                      <div className="space-y-3 max-w-xl mx-auto"> {/* Adjusted max-w to xl */}
+                        {filteredMilestones.length === 0 ? (
+                          <div className="text-center py-12 text-gray-500 bg-gray-50 rounded-lg border border-dashed border-gray-200">
+                            <p>沒有符合條件的里程碑</p>
+                          </div>
+                        ) : (
+                          filteredMilestones.map((milestone, index) => (
+                            <div
+                              key={index}
+                              className={`flex items-start p-4 border rounded-lg transition-all group ${
+                                milestone.completed 
+                                  ? 'bg-gray-50 border-gray-100 opacity-75' 
+                                  : 'bg-white border-gray-200 hover:border-blue-300 hover:shadow-md'
+                              }`}
+                            >
+                              <button
+                                onClick={() => handleMilestoneToggle(milestone.name || milestone.title || '', milestone.completed)}
+                                disabled={milestone.completed}
+                                className={`mr-4 mt-1 flex-shrink-0 transition-colors ${
+                                  milestone.completed ? 'cursor-default' : 'cursor-pointer hover:text-green-600'
+                                }`}
+                              >
+                                {milestone.completed ? (
+                                  <CheckCircle className="h-6 w-6 text-green-500" />
+                                ) : (
+                                  <Circle className="h-6 w-6 text-gray-300 group-hover:text-blue-400" />
+                                )}
+                              </button>
+                              <div className="flex-1 min-w-0">
+                                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2">
+                                  <h3 className={`font-medium truncate text-base ${milestone.completed ? 'text-gray-500 line-through' : 'text-gray-900'}`}>
+                                    {milestone.name || milestone.title}
+                                  </h3>
+                                  {milestone.due_date && (
+                                    <span className={`flex-shrink-0 text-xs px-2.5 py-1 rounded-full whitespace-nowrap font-medium ${
+                                      new Date(milestone.due_date) < new Date() && !milestone.completed
+                                        ? 'bg-red-100 text-red-700'
+                                        : 'bg-gray-100 text-gray-600'
+                                    }`}>
+                                      {new Date(milestone.due_date).toLocaleDateString('zh-TW')}
+                                    </span>
+                                  )}
+                                </div>
+                                {milestone.description && (
+                                  <p className="text-sm text-gray-600 mt-1.5 leading-relaxed">{milestone.description}</p>
+                                )}
+                                {milestone.completed && milestone.completed_date && (
+                                  <p className="text-xs text-green-600 mt-2 flex items-center bg-green-50 w-fit px-2 py-0.5 rounded">
+                                    <CheckCircle className="h-3 w-3 mr-1.5" />
+                                    完成於 {new Date(milestone.completed_date).toLocaleDateString('zh-TW')}
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+                          ))
                         )}
                       </div>
-                      {milestone.description && (
-                        <p className="text-sm text-gray-600 mt-1.5 leading-relaxed">{milestone.description}</p>
-                      )}
-                      {milestone.completed && milestone.completed_date && (
-                        <p className="text-xs text-green-600 mt-2 flex items-center bg-green-50 w-fit px-2 py-0.5 rounded">
-                          <CheckCircle className="h-3 w-3 mr-1.5" />
-                          完成於 {new Date(milestone.completed_date).toLocaleDateString('zh-TW')}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
-          </div>
-        </div>
+                    </div>        </div>
 
         {/* Notes Sidebar - Scrollable */}
         <div className="lg:col-span-1 bg-white rounded-lg shadow flex flex-col min-h-0 h-full">

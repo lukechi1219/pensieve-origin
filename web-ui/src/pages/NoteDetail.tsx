@@ -82,8 +82,8 @@ export default function NoteDetail() {
     }
   };
 
-  const handleMove = async (targetFolder: string) => {
-    if (!note || !id || !targetFolder || targetFolder === note.paraFolder) return;
+  const handleMove = async (targetFolder: string, subPath?: string) => {
+    if (!note || !id || !targetFolder || (targetFolder === note.paraFolder && !subPath)) return;
 
     const validFolders = ['inbox', 'projects', 'areas', 'resources', 'archive'];
     if (!validFolders.includes(targetFolder)) {
@@ -92,11 +92,11 @@ export default function NoteDetail() {
     }
 
     try {
-      await notesApi.move(id, targetFolder);
+      await notesApi.move(id, targetFolder, subPath);
       // Reload to update path info
       loadNote(id);
       setShowMoveModal(false);
-      alert(`已移動至 ${targetFolder}`);
+      alert(`已移動至 ${targetFolder}${subPath ? `/${subPath}` : ''}`);
     } catch (err) {
       console.error('Move failed:', err);
       alert('移動失敗');
@@ -347,7 +347,7 @@ export default function NoteDetail() {
                   </button>
                   <button
                     onClick={() => setActiveTab('preview')}
-                    className={`flex items-center pb-2 text-sm font-medium transition-colors ${
+                    className={`flex items-center pb-2 text-sm font-medium transition-colors lg:hidden ${
                       activeTab === 'preview'
                         ? 'text-blue-600 border-b-2 border-blue-600 -mb-2.5'
                         : 'text-gray-500 hover:text-gray-700'

@@ -238,7 +238,7 @@ router.delete('/:id', async (req: Request, res: Response) => {
 router.post('/:id/move', async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const { folder } = req.body;
+    const { folder, subPath } = req.body;
 
     const validFolders = ['inbox', 'projects', 'areas', 'resources', 'archive'];
     if (!validFolders.includes(folder)) {
@@ -258,12 +258,13 @@ router.post('/:id/move', async (req: Request, res: Response) => {
 
     const originalFolder = note.frontmatter.para_folder; // Store original folder
 
-    await NoteService.moveTo(note, folder as any);
+    await NoteService.moveTo(note, folder as any, subPath);
 
     res.json({
       message: 'Note moved successfully',
-      from: originalFolder, // Use original folder here
+      from: originalFolder,
       to: folder,
+      subPath,
     });
   } catch (error) {
     res.status(500).json({

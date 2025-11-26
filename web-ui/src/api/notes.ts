@@ -62,7 +62,7 @@ export const notesApi = {
   },
 
   // Move note to another folder
-  move: async (id: string, folder: string): Promise<Note> => {
-    return apiClient.post<Note>(`/notes/${id}/move`, { folder });
+  move: async (id: string, folder: string, subPath?: string): Promise<Note> => {
+    return apiClient.post<Note>(`/notes/${id}/move`, { folder, subPath });
   },
 };
