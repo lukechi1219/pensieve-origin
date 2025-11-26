@@ -73,8 +73,8 @@ export class ChatService {
    */
   static async create(title: string, messages: ChatMessage[] = []): Promise<Chat> {
     const now = new Date();
-    // Format as YYYYMMDD-HHMMSS
-    const id = now.toISOString().replace(/[-:T]/g, '').substring(0, 15);
+    // Format as YYYYMMDDHHMMSS
+    const id = now.toISOString().replace(/[-:T.]/g, '').substring(0, 14); // Removed '.' from replace, changed substring length
     const slug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').substring(0, 50);
     const filename = `${id}-${slug}.md`;
 

@@ -16,6 +16,9 @@ progress:
     - name: Initial MVP
       due_date: '2025-12-15'
       completed: false
+    - name: API Test Milestone
+      due_date: '2025-12-01'
+      completed: false
 archive:
   archived: false
   archive_date: null

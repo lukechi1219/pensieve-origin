@@ -256,11 +256,13 @@ router.post('/:id/move', async (req: Request, res: Response) => {
       });
     }
 
+    const originalFolder = note.frontmatter.para_folder; // Store original folder
+
     await NoteService.moveTo(note, folder as any);
 
     res.json({
       message: 'Note moved successfully',
-      from: note.frontmatter.para_folder,
+      from: originalFolder, // Use original folder here
       to: folder,
     });
   } catch (error) {
