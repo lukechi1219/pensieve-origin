@@ -13,12 +13,51 @@ import { generateTimestampId } from '../utils/dateUtils';
 
 export class NoteService {
   private static vaultPath: string = process.env.VAULT_PATH || './vault';
+  private static notesCache: Note[] | null = null;
 
   /**
    * Set vault path
    */
   static setVaultPath(vaultPath: string): void {
     this.vaultPath = vaultPath;
+  }
+
+  /**
+   * Invalidate the cache
+   */
+  private static invalidateCache(): void {
+    this.notesCache = null;
+  }
+
+  /**
+   * Get all notes (with caching)
+   */
+  private static async getAllNotes(): Promise<Note[]> {
+    if (this.notesCache) {
+      return this.notesCache;
+    }
+
+    const allNotes: Note[] = [];
+    const folders = ['0-inbox', '1-projects', '2-areas', '3-resources', '4-archive'];
+
+    for (const folder of folders) {
+      const folderPath = path.join(this.vaultPath, folder);
+      const files = await listFiles(folderPath, { recursive: true, extension: '.md' });
+
+      for (const filePath of files) {
+        try {
+          // Optimization: Could read file content only when needed, but for filtering we need frontmatter
+          // For now, load full note. Future optimization: Load only frontmatter for cache index.
+          const note = await this.getByPath(filePath);
+          allNotes.push(note);
+        } catch (e) {
+          // Skip invalid files
+        }
+      }
+    }
+
+    this.notesCache = allNotes;
+    return this.notesCache;
   }
 
   /**
@@ -83,6 +122,7 @@ export class NoteService {
     await writeFile(filePath, fileContent);
     note.filePath = filePath;
 
+    this.invalidateCache();
     return note;
   }
 
@@ -90,28 +130,8 @@ export class NoteService {
    * Get note by ID
    */
   static async getById(noteId: string): Promise<Note | null> {
-    // Search all PARA folders for the note
-    const folders = ['0-inbox', '1-projects', '2-areas', '3-resources', '4-archive'];
-
-    for (const folder of folders) {
-      const folderPath = path.join(this.vaultPath, folder);
-      const files = await listFiles(folderPath, { recursive: true, extension: '.md' });
-
-      for (const filePath of files) {
-        const content = await readFile(filePath);
-        const parsed = parseFrontmatter(content);
-
-        if (parsed.frontmatter.id === noteId) {
-          return new Note(
-            parsed.frontmatter as NoteFrontmatter,
-            parsed.content,
-            filePath
-          );
-        }
-      }
-    }
-
-    return null;
+    const notes = await this.getAllNotes();
+    return notes.find(n => n.frontmatter.id === noteId) || null;
   }
 
   /**
@@ -130,39 +150,16 @@ export class NoteService {
   static async listByFolder(
     paraFolder: NoteFrontmatter['para_folder']
   ): Promise<Note[]> {
-    const folderMap = {
-      inbox: '0-inbox',
-      projects: '1-projects',
-      areas: '2-areas',
-      resources: '3-resources',
-      archive: '4-archive',
-    };
-
-    const folderPath = path.join(this.vaultPath, folderMap[paraFolder]);
-    const files = await listFiles(folderPath, { recursive: true, extension: '.md' });
-
-    const notes: Note[] = [];
-    for (const filePath of files) {
-      const note = await this.getByPath(filePath);
-      notes.push(note);
-    }
-
-    return notes;
+    const notes = await this.getAllNotes();
+    return notes.filter(n => n.frontmatter.para_folder === paraFolder);
   }
 
   /**
    * Search notes by tag
    */
   static async findByTag(tag: string): Promise<Note[]> {
-    const allNotes: Note[] = [];
-    const folders = ['inbox', 'projects', 'areas', 'resources', 'archive'] as const;
-
-    for (const folder of folders) {
-      const notes = await this.listByFolder(folder);
-      allNotes.push(...notes);
-    }
-
-    return allNotes.filter(note => note.frontmatter.tags.includes(tag));
+    const notes = await this.getAllNotes();
+    return notes.filter(note => note.frontmatter.tags.includes(tag));
   }
 
   /**
@@ -174,15 +171,9 @@ export class NoteService {
     personal?: boolean;
     surprising?: boolean;
   }): Promise<Note[]> {
-    const allNotes: Note[] = [];
-    const folders = ['inbox', 'projects', 'areas', 'resources'] as const;
+    const notes = await this.getAllNotes();
 
-    for (const folder of folders) {
-      const notes = await this.listByFolder(folder);
-      allNotes.push(...notes);
-    }
-
-    return allNotes.filter(note => {
+    return notes.filter(note => {
       if (criteria.inspiring && !note.frontmatter.is_inspiring) return false;
       if (criteria.useful && !note.frontmatter.is_useful) return false;
       if (criteria.personal && !note.frontmatter.is_personal) return false;
@@ -202,6 +193,7 @@ export class NoteService {
     note.touch();
     const fileContent = serializeFrontmatter(note.frontmatter, note.content);
     await writeFile(note.filePath, fileContent);
+    this.invalidateCache();
   }
 
   /**
@@ -231,6 +223,7 @@ export class NoteService {
     await moveFile(note.filePath, newFilePath);
 
     note.filePath = newFilePath;
+    this.invalidateCache();
   }
 
   /**
@@ -242,6 +235,7 @@ export class NoteService {
     }
 
     await deleteFile(note.filePath);
+    this.invalidateCache();
   }
 
   /**

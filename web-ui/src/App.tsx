@@ -1,31 +1,43 @@
+import { Suspense, lazy } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { I18nProvider } from './i18n/I18nContext';
 import Layout from './components/Layout';
-import Dashboard from './pages/Dashboard';
-import Notes from './pages/Notes';
-import NoteDetail from './pages/NoteDetail';
-import Journals from './pages/Journals';
-import Projects from './pages/Projects';
-import ProjectDetail from './pages/ProjectDetail';
-import Chats from './pages/Chats';
-import ChatDetail from './pages/ChatDetail';
+import { Loader2 } from 'lucide-react';
+
+// Lazy load pages for performance optimization
+const Dashboard = lazy(() => import('./pages/Dashboard'));
+const Notes = lazy(() => import('./pages/Notes'));
+const NoteDetail = lazy(() => import('./pages/NoteDetail'));
+const Journals = lazy(() => import('./pages/Journals'));
+const Projects = lazy(() => import('./pages/Projects'));
+const ProjectDetail = lazy(() => import('./pages/ProjectDetail'));
+const Chats = lazy(() => import('./pages/Chats'));
+const ChatDetail = lazy(() => import('./pages/ChatDetail'));
+
+const PageLoader = () => (
+  <div className="flex items-center justify-center h-screen w-full">
+    <Loader2 className="h-8 w-8 text-blue-500 animate-spin" />
+  </div>
+);
 
 function App() {
   return (
     <I18nProvider>
       <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Layout />}>
-            <Route index element={<Dashboard />} />
-            <Route path="note/:id" element={<NoteDetail />} />
-            <Route path="notes/:folder" element={<Notes />} />
-            <Route path="journals" element={<Journals />} />
-            <Route path="projects" element={<Projects />} />
-            <Route path="projects/:name" element={<ProjectDetail />} />
-            <Route path="chats" element={<Chats />} />
-            <Route path="chats/:id" element={<ChatDetail />} />
-          </Route>
-        </Routes>
+        <Suspense fallback={<PageLoader />}>
+          <Routes>
+            <Route path="/" element={<Layout />}>
+              <Route index element={<Dashboard />} />
+              <Route path="note/:id" element={<NoteDetail />} />
+              <Route path="notes/:folder" element={<Notes />} />
+              <Route path="journals" element={<Journals />} />
+              <Route path="projects" element={<Projects />} />
+              <Route path="projects/:name" element={<ProjectDetail />} />
+              <Route path="chats" element={<Chats />} />
+              <Route path="chats/:id" element={<ChatDetail />} />
+            </Route>
+          </Routes>
+        </Suspense>
       </BrowserRouter>
     </I18nProvider>
   );

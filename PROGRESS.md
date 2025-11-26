@@ -1,7 +1,7 @@
 # Pensieve Development Progress
 
 **Last Updated**: 2025-11-26
-**Current Phase**: Web UI Finalization & JARVIS Integration (Complete) + Bug Fixing & Polish
+**Current Phase**: Web UI Finalization & JARVIS Integration (Complete) + Bug Fixing & Polish + Onboarding & Performance
 
 ---
 
@@ -297,7 +297,7 @@ pensieve project progress <name> <percent>         # Update progress
   - GET `/api/notes/:id` - Get note by ID
   - POST `/api/notes` - Create new note
   - PUT `/api/notes/:id` - Update note
-  - DELETE `/api/notes/:id` - Delete note
+  - DELETE `/api/api/notes/:id` - Delete note
   - POST `/api/notes/:id/move` - Move note to folder
 
 **API Routes - Journals** ✅
@@ -533,6 +533,17 @@ pensieve project progress <name> <percent>         # Update progress
 - [x] Implemented proper Markdown rendering for journal content in `Journals.tsx`.
 - [x] Fixed `bullet point` not displaying in Markdown by installing and configuring `@tailwindcss/typography`.
 
+### 14. Onboarding & Performance Optimization (2025-11-26)
+
+- [x] Implemented initial Onboarding experience with step-by-step guidance (`OnboardingModal.tsx`).
+- [x] Added a button to replay Onboarding from Dashboard.
+- [x] Expanded JARVIS Onboarding description to include conversation details.
+- [x] Added a dedicated "Interactive Chat" step to Onboarding flow.
+- [x] Implemented in-memory caching for `NoteService` to optimize API read requests.
+- [x] Implemented route-based code splitting (`React.lazy` and `Suspense`) for Web UI pages.
+- [x] Implemented "Create Journal" button when no journal entry exists for a selected date.
+
+
 ---
 
 ## ⏳ In Progress
@@ -553,7 +564,6 @@ pensieve project progress <name> <percent>         # Update progress
 **Phase 9: Export & Polish** (Deferred)
 - Export to PDF/HTML/Markdown
 - Backup/restore functionality
-- Performance optimization
 - Enhanced error handling
 - Offline support
 
@@ -563,6 +573,7 @@ pensieve project progress <name> <percent>         # Update progress
 - Analytics and insights dashboard
 - More robust search (backend full-text search)
 - Journal habit tracking UI in calendar
+- Journal metadata editing (mood, energy, habits)
 
 ---
 
@@ -614,7 +625,8 @@ pensieve-origin/
 │   │   │   ├── Header.tsx     # Search & quick capture
 │   │   │   ├── Calendar.tsx   # Journal Calendar
 │   │   │   ├── SummarizeButton.tsx # JARVIS Summarize
-│   │   │   └── MoveNoteModal.tsx # Move Note Modal
+│   │   │   ├── MoveNoteModal.tsx # Move Note Modal
+│   │   │   └── OnboardingModal.tsx # Onboarding Modal
 │   │   ├── pages/             # Page components
 │   │   │   ├── Dashboard.tsx      # Homepage
 │   │   │   ├── Notes.tsx          # PARA browser
@@ -671,3 +683,89 @@ pensieve-origin/
         ├── jarvis-oral-summarizer_en.md
         ├── jarvis-oral-summarizer_zh_Hant.md
         └── voice-discussion.md
+
+---
+
+## 🔧 Technical Stack
+
+**Backend**:
+- Node.js 18+ (now 20.19+ / 22.x recommended)
+- TypeScript 5.3
+- Commander.js (CLI)
+- Express (Web server)
+- gray-matter (Frontmatter parsing)
+- date-fns (Date utilities)
+- js-yaml (YAML parsing)
+
+**Frontend**:
+- Vite
+- React
+- TypeScript
+- Tailwind CSS v4
+- Lucide React icons
+- react-markdown
+
+**Testing**:
+- Vitest
+
+**Voice/AI**:
+- Google Cloud TTS (via google_tts.sh)
+- Claude Code CLI (for JARVIS agents)
+
+**Storage**:
+- File-based (Markdown + YAML frontmatter)
+- No database required
+
+---
+
+## 📝 Key Design Patterns
+
+1. **Service Layer Pattern**: All business logic in services (NoteService, JournalService, ProjectService, JarvisService, ChatService)
+2. **Model Classes**: Rich domain models with behavior (Note, Journal, Project, Chat)
+3. **Utility Functions**: Pure functions for common operations
+4. **Template Method**: Consistent file structure using templates
+5. **Factory Pattern**: Static `create()` methods for model instantiation
+
+---
+
+## 🎯 Success Metrics
+
+- ✅ TypeScript compilation: 0 errors
+- ✅ Dependencies installed: 350+ packages
+- ✅ Core files created: 11+ TypeScript files
+- ✅ Templates created: 3 templates
+- ✅ Build time: < 5 seconds
+- ✅ Documentation: 3 comprehensive files
+
+---
+
+## 🐛 Issues Resolved
+
+1. **TypeScript Error in NoteService.ts** (Line 238)
+   - Issue: Type mismatch in distillation level mapping
+   - Fix: Added explicit Record type and level 0 mapping
+   - Status: ✅ Resolved
+2. **Frontend Type Mismatch for Journal**
+   - Issue: Journal interface had `energy_level` (snake_case) but backend returned `energyLevel` (camelCase).
+   - Fix: Updated `Journal` type in `types/index.ts` to `energyLevel`.
+   - Status: ✅ Resolved
+
+---
+
+## 💡 Notes & Observations
+
+1. **Parallel Execution**: Successfully executed 4 independent tracks simultaneously during foundation setup, saving ~5 minutes
+2. **CLI-First Approach**: Prioritizing CLI over API enables agent support (JARVIS, voice-discussion)
+3. **Progressive Enhancement**: Building incrementally with working code at each at each step
+4. **No External Database**: File-based approach keeps system simple and portable
+5. **Template System**: Pre-built templates ensure consistency across notes/journals/projects
+6. **Robust AI Integration**: Successfully integrated Claude Code CLI for summarization and chat, including TTS output.
+
+---
+
+## 🔗 Reference Documents
+
+- `IMPLEMENTATION_PLAN.md` - Complete 9-week implementation strategy
+- `CLAUDE.md` - Project guidance and architectural decisions
+- `plan.md` - CODE methodology philosophy (Chinese)
+- `.claude/agents/` - JARVIS and voice agent configurations

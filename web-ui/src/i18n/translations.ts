@@ -117,6 +117,38 @@ export const translations = {
       error: 'Failed to generate summary',
     },
 
+    // Onboarding
+    onboarding: {
+      welcome: {
+        title: 'Welcome to Pensieve',
+        desc: 'Your second brain for capturing, organizing, and distilling knowledge.',
+      },
+      code: {
+        title: 'CODE Methodology',
+        desc: 'Capture everything, Organize by actionability, Distill to find the essence, and Express your work.',
+      },
+      para: {
+        title: 'PARA Organization',
+        desc: 'Structure your life into Projects (goals), Areas (responsibilities), Resources (topics), and Archives.',
+      },
+      jarvis: {
+        title: 'Meet JARVIS',
+        desc: 'Your intelligent AI companion. JARVIS can summarize your notes, distill information to higher levels, engage in conversation, and even provide voice output for responses.',
+      },
+      chat: {
+        title: 'Interactive Chat',
+        desc: 'Chat with JARVIS to brainstorm ideas or ask questions about your notes. Enable voice mode for a natural conversation experience.',
+      },
+      ready: {
+        title: 'Ready to Start?',
+        desc: 'Begin by capturing your first note or creating a project.',
+      },
+      next: 'Next',
+      back: 'Back',
+      finish: 'Get Started',
+      skip: 'Skip Tutorial',
+    },
+
     // Common
     common: {
       save: 'Save',
@@ -259,6 +291,38 @@ export const translations = {
       replay: '重播',
       distill: '精煉',
       error: '無法生成摘要',
+    },
+
+    // Onboarding
+    onboarding: {
+      welcome: {
+        title: '歡迎來到 Pensieve',
+        desc: '您的第二大腦，用於捕捉、組織和精煉知識。',
+      },
+      code: {
+        title: 'CODE 方法論',
+        desc: '捕捉 (Capture) 一切，依行動性組織 (Organize)，精煉 (Distill) 本質，並表達 (Express) 您的成果。',
+      },
+      para: {
+        title: 'PARA 架構',
+        desc: '將您的生活組織為專案 (Projects)、領域 (Areas)、資源 (Resources) 和封存 (Archives)。',
+      },
+      jarvis: {
+        title: '遇見 JARVIS',
+        desc: '您的智能 AI 夥伴。JARVIS 能為您的筆記進行精闢總結、將資訊精煉至更高層次、與您進行對話互動，甚至能將回應語音輸出。',
+      },
+      chat: {
+        title: '智能對話',
+        desc: '與 JARVIS 進行對話，激盪創意或詢問筆記相關問題。開啟語音模式，體驗自然的對話互動。',
+      },
+      ready: {
+        title: '準備開始了嗎？',
+        desc: '從捕捉您的第一則筆記或建立專案開始吧。',
+      },
+      next: '下一步',
+      back: '上一步',
+      finish: '開始使用',
+      skip: '跳過教學',
     },
 
     // 通用

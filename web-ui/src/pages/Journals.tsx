@@ -66,34 +66,16 @@ export default function Journals() {
     }
   };
 
-  const handleEdit = () => {
-    if (selectedJournal) {
-      setEditContent(selectedJournal.content || '');
-      setIsEditing(true);
-    }
-  };
-
-  const handleCancel = () => {
-    setIsEditing(false);
-    setEditContent('');
-  };
-
-  const handleSave = async () => {
-    if (!selectedJournal) return;
-
-    setIsSaving(true);
+  const handleCreateJournal = async () => {
     try {
       const dateStr = format(selectedDate, 'yyyy-MM-dd');
-      await journalsApi.update(dateStr, { content: editContent });
-      
-      // Reload journals to get updated content
-      await loadJournalsByMonth(currentMonth);
-      setIsEditing(false);
-    } catch (err) {
-      console.error('Failed to save journal:', err);
-      alert('儲存失敗，請稍後再試');
-    } finally {
-      setIsSaving(false);
+      await journalsApi.getByDate(dateStr); // Backend creates if not exists
+      await loadJournalsByMonth(currentMonth); // Reload month to show new journal
+      loadJournalStats(); // Update stats
+      alert(`已建立 ${dateStr} 的日記`);
+    } catch (error) {
+      console.error('Failed to create journal:', error);
+      alert('建立日記失敗');
     }
   };
 
@@ -238,7 +220,12 @@ export default function Journals() {
                   </div>
                   <div>
                     <p className="font-medium text-gray-900">這天還沒有日記</p>
-                    <p className="text-sm mt-1">點擊「編輯」按鈕開始寫作（暫未實作新增功能）</p>
+                    <button
+                      onClick={handleCreateJournal}
+                      className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                    >
+                      建立日記
+                    </button>
                   </div>
                 </div>
               )}
