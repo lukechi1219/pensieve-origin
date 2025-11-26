@@ -1,0 +1,17 @@
+name: CLI Commands
+description: Project for implementing and testing CLI commands
+status: active
+created: 2025-11-26T00:00:00.000Z
+deadline: 2026-02-26T00:00:00.000Z
+progress:
+  percent_complete: 5
+  last_updated: '2025-11-26'
+  milestones:
+    - name: '123'
+      due_date: '2025-11-27'
+      completed: true
+archive:
+  archived: false
+  archive_date: null
+  archive_reason: null
+  lessons_learned: null

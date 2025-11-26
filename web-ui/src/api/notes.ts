@@ -47,7 +47,8 @@ export const notesApi = {
 
   // Create new note
   create: async (data: CreateNoteData): Promise<Note> => {
-    return apiClient.post<Note>('/notes', data);
+    const response = await apiClient.post<{ message: string; note: Note }>('/notes', data);
+    return response.note;
   },
 
   // Update note

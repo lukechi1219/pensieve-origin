@@ -1,7 +1,7 @@
 # Pensieve Development Progress
 
-**Last Updated**: 2025-11-25
-**Current Phase**: Phase 7-8 - Web Frontend (Complete - MVP)
+**Last Updated**: 2025-11-26
+**Current Phase**: Web UI Finalization & JARVIS Integration (Complete) + Bug Fixing & Polish
 
 ---
 
@@ -12,7 +12,8 @@
 - **Core Models**: ✅ Complete
 - **CLI Foundation**: ✅ Complete (List, Search, PARA, Projects)
 - **Web Backend**: ✅ Complete (REST API with 20+ endpoints)
-- **Web Frontend**: ✅ Complete (MVP - React + Vite + Tailwind v4)
+- **Web Frontend**: ✅ Complete (Feature-rich React + Vite + Tailwind v4)
+- **JARVIS Integration**: ✅ Complete (AI summarization, TTS, Chat)
 
 ---
 
@@ -305,7 +306,7 @@ pensieve project progress <name> <percent>         # Update progress
   - GET `/api/journals/today` - Get today's journal
   - GET `/api/journals/yesterday` - Get yesterday's journal
   - GET `/api/journals/streak` - Get journaling streak
-  - GET `/api/journals/stats` - Get statistics
+  - GET `/api/journals/stats` - Displays statistics
   - GET `/api/journals/:date` - Get by specific date
   - PUT `/api/journals/:date` - Update journal entry
 
@@ -317,8 +318,23 @@ pensieve project progress <name> <percent>         # Update progress
   - PUT `/api/projects/:name` - Update project metadata
   - POST `/api/projects/:name/progress` - Update progress
   - POST `/api/projects/:name/milestones` - Add milestone
+  - POST `/api/projects/:name/milestones/:milestoneName/complete` - Complete milestone
   - POST `/api/projects/:name/complete` - Complete project
   - POST `/api/projects/:name/archive` - Archive project
+
+**API Routes - JARVIS & Chats** ✅
+- [x] Created `routes/jarvis.ts`
+  - POST `/api/jarvis/summarize/:id` - Summarize note
+  - POST `/api/jarvis/distill/:id` - Distill note to next level
+  - POST `/api/jarvis/batch-summarize` - Batch summarize notes (SSE)
+  - GET `/api/jarvis/distillation-levels` - Get level info
+  - POST `/api/jarvis/speak` - Play text via TTS
+- [x] Created `routes/chats.ts`
+  - GET `/api/chats` - List all chats
+  - GET `/api/chats/:id` - Get chat by ID
+  - POST `/api/chats` - Create new chat
+  - POST `/api/chats/:id/messages` - Add message to chat (with AI response)
+  - DELETE `/api/chats/:id` - Delete chat
 
 **Testing & Documentation** ✅
 - [x] Comprehensive endpoint testing (20+ tests)
@@ -344,7 +360,7 @@ pensieve project progress <name> <percent>         # Update progress
 - Vault path: `/Users/.../vault`
 - All endpoints operational
 - Zero errors during testing
-- Production-ready (MVP)
+- Production-ready (Feature Complete)
 
 ### 9. Web Frontend Implementation (2025-11-25)
 
@@ -367,6 +383,8 @@ pensieve project progress <name> <percent>         # Update progress
 - [x] Created `api/notes.ts` - Notes API endpoints with response transformation
 - [x] Created `api/journals.ts` - Journals API endpoints
 - [x] Created `api/projects.ts` - Projects API endpoints with response transformation
+- [x] Created `api/jarvis.ts` - JARVIS API endpoints
+- [x] Created `api/chats.ts` - Chat API endpoints
 - [x] Fixed backend/frontend type mismatches:
   - Notes: `{ count, notes }` → `{ items, total }`
   - Projects: `{ count, projects }` → `{ items, total }`
@@ -419,6 +437,8 @@ pensieve project progress <name> <percent>         # Update progress
   - Milestones list with completion status
   - Related notes (filtered by project folder)
   - Placeholder action buttons
+- [x] `Chats.tsx` - Chat list
+- [x] `ChatDetail.tsx` - Chat conversation viewer
 
 **Routing** ✅
 - [x] Set up React Router v6
@@ -429,6 +449,8 @@ pensieve project progress <name> <percent>         # Update progress
   - `/journals` - Journal stats
   - `/projects` - Projects list
   - `/projects/:name` - Project detail
+  - `/chats` - Chat list
+  - `/chats/:id` - Chat detail
 
 **Bug Fixes & Data Corrections** ✅
 - [x] Fixed TypeScript module export errors (used `import type`)
@@ -439,16 +461,6 @@ pensieve project progress <name> <percent>         # Update progress
 - [x] Fixed back button using `filePath` as source of truth
 - [x] Fixed Project type structure to match backend API
 - [x] Created new test note successfully
-
-**Testing** ✅
-- [x] Both servers running successfully:
-  - Backend: http://localhost:3000 (Express API)
-  - Frontend: http://localhost:5173 (Vite dev server)
-- [x] All pages loading correctly
-- [x] Navigation working between all pages
-- [x] API integration verified
-- [x] Note creation tested (20251125212533)
-- [x] Project detail pages working
 
 **Internationalization (i18n)** ✅ (2025-11-26)
 - [x] Created i18n infrastructure with React Context
@@ -485,25 +497,53 @@ pensieve project progress <name> <percent>         # Update progress
 
 **Status**: 🎉 **Web UI MVP Complete and Operational with Full i18n Support**
 
+### 10. Web UI Feature Enhancements (2025-11-26)
+
+- [x] Implemented Note Editor with Markdown preview and save functionality (`NoteDetail.tsx`).
+- [x] Implemented Journal Calendar view with monthly navigation and daily detail interaction (`Journals.tsx`).
+- [x] Enhanced Project Management: interactive status, progress slider, add milestone, milestone completion (`ProjectDetail.tsx`).
+- [x] Implemented Create Project modal (`Projects.tsx`).
+- [x] Implemented Header search bar with real-time dropdown results (`Header.tsx`).
+- [x] Implemented Quick Capture modal for new notes (`Header.tsx`).
+- [x] Ensured full i18n support for all new/modified UI components.
+
+### 11. JARVIS AI Integration (2025-11-26)
+
+- [x] Confirmed backend `JarvisService` and `jarvisRouter` readiness.
+- [x] Verified `claude` CLI and `gcloud` availability for AI processing.
+- [x] Integrated and internationalized `SummarizeButton.tsx` for AI summarization and distillation in `NoteDetail.tsx`.
+- [x] Implemented interactive Chat interface (`ChatDetail.tsx`) with AI (Claude) responses, voice mode, and i18n.
+- [x] Implemented "JARVIS is processing..." state for chat UI.
+
+### 12. Node.js Version Update Assistance (2025-11-26)
+
+- [x] Assisted user with Node.js version upgrade and frontend server restart.
+
+### 13. General Bug Fixes & UI Polish (2025-11-26)
+
+- [x] Fixed `react-markdown` `className` prop warning in `NoteDetail.tsx`.
+- [x] Ensured `filePath` is included in `GET /api/notes` API response.
+- [x] Corrected `addMilestone` API request body to match backend expectations.
+- [x] Fixed project list progress bar display by aligning API response (`GET /api/projects`).
+- [x] Resolved Quick Capture navigation to `/note/undefined` by correcting `notesApi.create` return handling.
+- [x] Corrected project back link from `NoteDetail.tsx` to use correct project name.
+- [x] Optimized `ProjectDetail.tsx` layout for milestones and related notes (width, scrolling, filters, sorting).
+- [x] Implemented Note Move functionality using an interactive modal (`MoveNoteModal.tsx`) in `NoteDetail.tsx`.
+- [x] Implemented Note Delete functionality with confirmation in `NoteDetail.tsx`.
+- [x] Implemented proper Markdown rendering for journal content in `Journals.tsx`.
+- [x] Fixed `bullet point` not displaying in Markdown by installing and configuring `@tailwindcss/typography`.
+
 ---
 
 ## ⏳ In Progress
 
-**Phase 4: JARVIS Integration** (Not started)
-**Phase 5: Voice Capture** (Not started)
-**Phase 9: Export & Polish** (Not started)
+(None)
 
 ---
 
 ## 📋 Next Steps
 
 ### Future Enhancements
-
-**Phase 4: JARVIS Integration** (Deferred)
-- AI-powered progressive summarization
-- Voice-guided journaling
-- Batch processing with Claude Code CLI
-- TTS integration for summaries
 
 **Phase 5: Voice Capture** (Deferred)
 - OS-level voice input integration
@@ -517,14 +557,12 @@ pensieve project progress <name> <percent>         # Update progress
 - Enhanced error handling
 - Offline support
 
-**Web UI Enhancements** (Future)
-- Note editor with markdown preview
-- Journal calendar view with habit tracking
-- Project management with milestone editing
-- Advanced search and filtering
+**Web UI & Feature Polish**
 - Drag-and-drop file organization
 - Real-time collaboration features
 - Analytics and insights dashboard
+- More robust search (backend full-text search)
+- Journal habit tracking UI in calendar
 
 ---
 
@@ -567,18 +605,25 @@ pensieve-origin/
 │   │   │   ├── notes.ts       # Notes API
 │   │   │   ├── journals.ts    # Journals API
 │   │   │   ├── projects.ts    # Projects API
+│   │   │   ├── jarvis.ts      # JARVIS API
+│   │   │   ├── chats.ts       # Chat API
 │   │   │   └── index.ts       # Exports
 │   │   ├── components/        # React components
 │   │   │   ├── Layout.tsx     # Main layout
 │   │   │   ├── Sidebar.tsx    # PARA navigation
-│   │   │   └── Header.tsx     # Search & quick capture
+│   │   │   ├── Header.tsx     # Search & quick capture
+│   │   │   ├── Calendar.tsx   # Journal Calendar
+│   │   │   ├── SummarizeButton.tsx # JARVIS Summarize
+│   │   │   └── MoveNoteModal.tsx # Move Note Modal
 │   │   ├── pages/             # Page components
 │   │   │   ├── Dashboard.tsx      # Homepage
 │   │   │   ├── Notes.tsx          # PARA browser
 │   │   │   ├── NoteDetail.tsx     # Note viewer
-│   │   │   ├── Journals.tsx       # Journal stats
+│   │   │   ├── Journals.tsx       # Journal stats & calendar
 │   │   │   ├── Projects.tsx       # Projects list
-│   │   │   └── ProjectDetail.tsx  # Project viewer
+│   │   │   ├── ProjectDetail.tsx  # Project viewer
+│   │   │   ├── Chats.tsx          # Chat list
+│   │   │   └── ChatDetail.tsx     # Chat conversation
 │   │   ├── types/             # TypeScript types
 │   │   │   └── index.ts       # All interfaces
 │   │   └── lib/               # Utilities
@@ -594,10 +639,14 @@ pensieve-origin/
 │   │   │   ├── models/
 │   │   │   │   ├── Note.ts        # Note model
 │   │   │   │   ├── Journal.ts     # Journal model
-│   │   │   │   └── Project.ts     # Project model
+│   │   │   │   ├── Project.ts     # Project model
+│   │   │   │   └── Chat.ts        # Chat model
 │   │   │   ├── services/
 │   │   │   │   ├── NoteService.ts    # Note CRUD
-│   │   │   │   └── JournalService.ts # Journal management
+│   │   │   │   ├── JournalService.ts # Journal management
+│   │   │   │   ├── ProjectService.ts # Project management
+│   │   │   │   ├── JarvisService.ts  # JARVIS AI integration
+│   │   │   │   └── ChatService.ts    # Chat management
 │   │   │   └── utils/
 │   │   │       ├── frontmatterParser.ts  # YAML parsing
 │   │   │       ├── fileSystem.ts         # File operations
@@ -608,7 +657,9 @@ pensieve-origin/
 │   │       └── routes/
 │   │           ├── notes.ts    # Notes endpoints
 │   │           ├── journals.ts # Journals endpoints
-│   │           └── projects.ts # Projects endpoints
+│   │           ├── projects.ts # Projects endpoints
+│   │           ├── jarvis.ts   # JARVIS AI endpoints
+│   │           └── chats.ts    # Chat endpoints
 │   ├── dist/                  # Compiled JavaScript
 │   │   ├── cli/
 │   │   │   └── index.js
@@ -620,92 +671,3 @@ pensieve-origin/
         ├── jarvis-oral-summarizer_en.md
         ├── jarvis-oral-summarizer_zh_Hant.md
         └── voice-discussion.md
-```
-
----
-
-## 🔧 Technical Stack
-
-**Backend**:
-- Node.js 18+
-- TypeScript 5.3
-- Commander.js (CLI)
-- Express (Web server - future)
-- gray-matter (Frontmatter parsing)
-- date-fns (Date utilities)
-- js-yaml (YAML parsing)
-
-**Frontend** (future):
-- Vite
-- React
-- TypeScript
-
-**Testing**:
-- Vitest
-
-**Voice/AI**:
-- Google Cloud TTS (via google_tts.sh)
-- Claude Code CLI (for JARVIS agents)
-
-**Storage**:
-- File-based (Markdown + YAML frontmatter)
-- No database required
-
----
-
-## 📝 Key Design Patterns
-
-1. **Service Layer Pattern**: All business logic in services (NoteService, JournalService)
-2. **Model Classes**: Rich domain models with behavior (Note, Journal, Project)
-3. **Utility Functions**: Pure functions for common operations
-4. **Template Method**: Consistent file structure using templates
-5. **Factory Pattern**: Static `create()` methods for model instantiation
-
----
-
-## 🎯 Success Metrics
-
-- ✅ TypeScript compilation: 0 errors
-- ✅ Dependencies installed: 350 packages
-- ✅ Core files created: 11 TypeScript files
-- ✅ Templates created: 3 templates
-- ✅ Build time: < 5 seconds
-- ✅ Documentation: 3 comprehensive files
-
----
-
-## 🐛 Issues Resolved
-
-1. **TypeScript Error in NoteService.ts** (Line 238)
-   - Issue: Type mismatch in distillation level mapping
-   - Fix: Added explicit Record type and level 0 mapping
-   - Status: ✅ Resolved
-
----
-
-## 💡 Notes & Observations
-
-1. **Parallel Execution**: Successfully executed 4 independent tracks simultaneously during foundation setup, saving ~5 minutes
-2. **CLI-First Approach**: Prioritizing CLI over API enables agent support (JARVIS, voice-discussion)
-3. **Progressive Enhancement**: Building incrementally with working code at each step
-4. **No External Database**: File-based approach keeps system simple and portable
-5. **Template System**: Pre-built templates ensure consistency across notes/journals/projects
-
----
-
-## 🔗 Reference Documents
-
-- `IMPLEMENTATION_PLAN.md` - Complete 9-week implementation strategy
-- `CLAUDE.md` - Project guidance and architectural decisions
-- `plan.md` - CODE methodology philosophy (Chinese)
-- `.claude/agents/` - JARVIS and voice agent configurations
-
----
-
-**Current Phase**: Web Frontend Development (Phase 7-8)
-
-**Next Immediate Actions**:
-1. Initialize Vite + React + TypeScript project in `web-ui/`
-2. Set up Tailwind CSS and shadcn/ui
-3. Create basic layout and routing structure
-4. Build API client to connect to http://localhost:3000

@@ -21,7 +21,9 @@ router.get('/', async (req: Request, res: Response) => {
         name: project.name,
         description: project.description,
         status: project.status,
-        progress: project.progress,
+        progress: {
+          percentComplete: project.progress
+        },
         deadline: project.deadline,
         path: project.path,
       })),
@@ -214,6 +216,28 @@ router.post('/:name/milestones', async (req: Request, res: Response) => {
   } catch (error) {
     res.status(500).json({
       error: 'Failed to add milestone',
+      message: error instanceof Error ? error.message : String(error),
+    });
+  }
+});
+
+/**
+ * POST /api/projects/:name/milestones/:milestoneName/complete
+ * Complete a milestone
+ */
+router.post('/:name/milestones/:milestoneName/complete', async (req: Request, res: Response) => {
+  try {
+    const { name, milestoneName } = req.params;
+
+    await ProjectService.completeMilestone(name, milestoneName);
+
+    res.json({
+      message: 'Milestone completed successfully',
+      milestoneName,
+    });
+  } catch (error) {
+    res.status(500).json({
+      error: 'Failed to complete milestone',
       message: error instanceof Error ? error.message : String(error),
     });
   }

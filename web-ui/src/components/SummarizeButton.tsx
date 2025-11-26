@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Sparkles, Volume2, VolumeX, Play } from 'lucide-react';
 import { jarvisApi } from '../api/jarvis';
+import { useI18n } from '../i18n/I18nContext';
 
 interface SummarizeButtonProps {
   noteId: string;
@@ -14,16 +15,20 @@ interface SummarizeButtonProps {
 export default function SummarizeButton({
   noteId,
   currentLevel,
-  language = 'en',
+  language,
   onSummaryGenerated,
   onDistillationComplete,
   className = '',
 }: SummarizeButtonProps) {
+  const { t, locale } = useI18n();
   const [isLoading, setIsLoading] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [summary, setSummary] = useState<string>('');
   const [error, setError] = useState<string>('');
   const [voiceEnabled, setVoiceEnabled] = useState(false);
+
+  // Determine language to use: prop override > current locale
+  const targetLanguage = language || (locale === 'zh_Hant' ? 'zh' : 'en');
 
   const handleSummarize = async () => {
     setIsLoading(true);
@@ -32,7 +37,7 @@ export default function SummarizeButton({
 
     try {
       const response = await jarvisApi.summarize(noteId, {
-        language,
+        language: targetLanguage,
         voice: voiceEnabled,
       });
 
@@ -42,7 +47,7 @@ export default function SummarizeButton({
         onSummaryGenerated(response.summary);
       }
     } catch (err: any) {
-      setError(err.message || 'Failed to generate summary');
+      setError(err.message || t.jarvis.error);
     } finally {
       setIsLoading(false);
     }
@@ -61,7 +66,7 @@ export default function SummarizeButton({
     try {
       const targetLevel = currentLevel + 1;
       await jarvisApi.distill(noteId, targetLevel, {
-        language,
+        language: targetLanguage,
         voice: voiceEnabled,
       });
 
@@ -69,7 +74,7 @@ export default function SummarizeButton({
         onDistillationComplete();
       }
     } catch (err: any) {
-      setError(err.message || 'Failed to distill note');
+      setError(err.message || t.jarvis.error);
     } finally {
       setIsLoading(false);
     }
@@ -82,7 +87,7 @@ export default function SummarizeButton({
     setError('');
 
     try {
-      await jarvisApi.speak(summary, language);
+      await jarvisApi.speak(summary, targetLanguage);
     } catch (err: any) {
       setError(err.message || 'Failed to play audio');
     } finally {
@@ -105,7 +110,7 @@ export default function SummarizeButton({
           className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         >
           <Sparkles className="w-5 h-5" />
-          {isLoading ? 'Summarizing...' : 'Ask JARVIS'}
+          {isLoading ? t.jarvis.summarizing : t.jarvis.summarize}
         </button>
 
         {/* Distill Button */}
@@ -116,7 +121,7 @@ export default function SummarizeButton({
             className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             <Sparkles className="w-5 h-5" />
-            {isLoading ? 'Distilling...' : `Distill to Level ${nextLevel}`}
+            {isLoading ? t.jarvis.summarizing : `${t.jarvis.distill} (Level ${nextLevel})`}
           </button>
         )}
 
@@ -153,7 +158,7 @@ export default function SummarizeButton({
             <Sparkles className="w-5 h-5 text-purple-600 mt-0.5 flex-shrink-0" />
             <div className="flex-1">
               <div className="flex items-center justify-between mb-2">
-                <h4 className="font-semibold text-purple-900">JARVIS Summary</h4>
+                <h4 className="font-semibold text-purple-900">JARVIS {t.jarvis.summarize}</h4>
                 <button
                   onClick={handleReplay}
                   disabled={isPlaying}
@@ -161,10 +166,10 @@ export default function SummarizeButton({
                   title="Play summary via TTS"
                 >
                   <Play className="w-4 h-4" />
-                  {isPlaying ? 'Playing...' : 'Replay'}
+                  {isPlaying ? 'Playing...' : t.jarvis.replay}
                 </button>
               </div>
-              <p className="text-gray-700 leading-relaxed">{summary}</p>
+              <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">{summary}</p>
             </div>
           </div>
         </div>
@@ -211,3 +216,4 @@ export default function SummarizeButton({
     </div>
   );
 }
+

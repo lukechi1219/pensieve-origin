@@ -57,7 +57,19 @@ export const projectsApi = {
   addMilestone: async (name: string, milestone: AddMilestoneData): Promise<Project> => {
     return apiClient.post<Project>(
       `/projects/${encodeURIComponent(name)}/milestones`,
-      milestone
+      {
+        milestoneName: milestone.title,
+        dueDate: milestone.due_date,
+        description: milestone.description
+      }
+    );
+  },
+
+  // Complete milestone
+  completeMilestone: async (name: string, milestoneName: string): Promise<{ message: string }> => {
+    return apiClient.post<{ message: string }>(
+      `/projects/${encodeURIComponent(name)}/milestones/${encodeURIComponent(milestoneName)}/complete`,
+      {}
     );
   },
 

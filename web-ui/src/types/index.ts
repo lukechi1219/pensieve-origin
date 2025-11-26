@@ -35,10 +35,10 @@ export interface Journal {
   date: string;
   tags: string[];
   mood?: string;
-  energy_level?: number;
-  habits_completed: string[];
+  energyLevel?: number;
+  habitsCompleted: string[];
   gratitude: string[];
-  file_path?: string;
+  filePath?: string;
 }
 
 // Chat types

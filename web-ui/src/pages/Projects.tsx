@@ -2,13 +2,20 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { projectsApi } from '../api';
 import type { Project } from '../types';
-import { FolderKanban, TrendingUp } from 'lucide-react';
+import { FolderKanban, TrendingUp, Plus, X } from 'lucide-react';
 import { useI18n } from '../i18n/I18nContext';
 
 export default function Projects() {
   const { t, locale } = useI18n();
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
+  
+  // Modal state
+  const [showModal, setShowModal] = useState(false);
+  const [newProjectName, setNewProjectName] = useState('');
+  const [newProjectDesc, setNewProjectDesc] = useState('');
+  const [newProjectDeadline, setNewProjectDeadline] = useState('');
+  const [creating, setCreating] = useState(false);
 
   useEffect(() => {
     loadProjects();
@@ -25,6 +32,33 @@ export default function Projects() {
     }
   };
 
+  const handleCreateProject = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newProjectName) return;
+
+    setCreating(true);
+    try {
+      // Convert date to expected format or calculate months
+      // For now we'll just create with default deadline logic if date not provided
+      await projectsApi.create({
+        name: newProjectName,
+        description: newProjectDesc,
+        deadline: newProjectDeadline || undefined
+      });
+      
+      setNewProjectName('');
+      setNewProjectDesc('');
+      setNewProjectDeadline('');
+      setShowModal(false);
+      loadProjects();
+    } catch (error) {
+      console.error('Failed to create project:', error);
+      alert('建立專案失敗');
+    } finally {
+      setCreating(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-full">
@@ -38,12 +72,21 @@ export default function Projects() {
   const otherProjects = projects.filter(p => p.status !== 'active' && p.status !== 'completed');
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900">{t.projects.title}</h1>
-        <p className="mt-2 text-gray-600">
-          {locale === 'zh_Hant' ? '管理您的短期目標（2-3個月期限）' : 'Manage your short-term goals (2-3 month timeframe)'}
-        </p>
+    <div className="space-y-6 relative">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">{t.projects.title}</h1>
+          <p className="mt-2 text-gray-600">
+            {locale === 'zh_Hant' ? '管理您的短期目標（2-3個月期限）' : 'Manage your short-term goals (2-3 month timeframe)'}
+          </p>
+        </div>
+        <button
+          onClick={() => setShowModal(true)}
+          className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-sm"
+        >
+          <Plus className="h-5 w-5 mr-2" />
+          {locale === 'zh_Hant' ? '新增專案' : 'New Project'}
+        </button>
       </div>
 
       {/* Active Projects */}
@@ -86,7 +129,96 @@ export default function Projects() {
         <div className="bg-white rounded-lg shadow p-12 text-center">
           <FolderKanban className="h-16 w-16 text-gray-400 mx-auto mb-4" />
           <h3 className="text-lg font-medium text-gray-900 mb-2">{t.projects.noProjects}</h3>
-          <p className="text-gray-600">{t.projects.createFirst}</p>
+          <p className="text-gray-600 mb-6">{t.projects.createFirst}</p>
+          <button
+            onClick={() => setShowModal(true)}
+            className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            <Plus className="h-5 w-5 mr-2" />
+            {locale === 'zh_Hant' ? '立即建立' : 'Create Now'}
+          </button>
+        </div>
+      )}
+
+      {/* Create Project Modal */}
+      {showModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-md animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex justify-between items-center p-6 border-b border-gray-100">
+              <h3 className="text-lg font-semibold text-gray-900">
+                {locale === 'zh_Hant' ? '新增專案' : 'Create New Project'}
+              </h3>
+              <button 
+                onClick={() => setShowModal(false)}
+                className="text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            
+            <form onSubmit={handleCreateProject} className="p-6 space-y-4">
+              <div>
+                <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
+                  {locale === 'zh_Hant' ? '專案名稱' : 'Project Name'}
+                </label>
+                <input
+                  type="text"
+                  id="name"
+                  required
+                  value={newProjectName}
+                  onChange={(e) => setNewProjectName(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="e.g. Build Website"
+                />
+              </div>
+              
+              <div>
+                <label htmlFor="desc" className="block text-sm font-medium text-gray-700 mb-1">
+                  {locale === 'zh_Hant' ? '描述' : 'Description'}
+                </label>
+                <textarea
+                  id="desc"
+                  rows={3}
+                  value={newProjectDesc}
+                  onChange={(e) => setNewProjectDesc(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="Briefly describe the goal..."
+                />
+              </div>
+              
+              <div>
+                <label htmlFor="deadline" className="block text-sm font-medium text-gray-700 mb-1">
+                  {locale === 'zh_Hant' ? '截止日期 (選填)' : 'Deadline (Optional)'}
+                </label>
+                <input
+                  type="date"
+                  id="deadline"
+                  value={newProjectDeadline}
+                  onChange={(e) => setNewProjectDeadline(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+
+              <div className="flex gap-3 justify-end pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowModal(false)}
+                  className="px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                >
+                  {locale === 'zh_Hant' ? '取消' : 'Cancel'}
+                </button>
+                <button
+                  type="submit"
+                  disabled={creating}
+                  className="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
+                >
+                  {creating 
+                    ? (locale === 'zh_Hant' ? '建立中...' : 'Creating...') 
+                    : (locale === 'zh_Hant' ? '建立' : 'Create')}
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       )}
     </div>
@@ -125,16 +257,16 @@ function ProjectCard({ project }: ProjectCardProps) {
   return (
     <Link
       to={`/projects/${project.name}`}
-      className="bg-white rounded-lg shadow p-6 hover:shadow-md transition-shadow"
+      className="bg-white rounded-lg shadow p-6 hover:shadow-md transition-shadow group border border-transparent hover:border-blue-100"
     >
       <div className="flex items-start justify-between mb-4">
-        <h3 className="text-lg font-semibold text-gray-900">{project.name}</h3>
+        <h3 className="text-lg font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">{project.name}</h3>
         <span className={`px-2 py-1 text-xs rounded ${statusColors[project.status]}`}>
           {getStatusLabel(project.status)}
         </span>
       </div>
 
-      <p className="text-sm text-gray-600 mb-4">{project.description}</p>
+      <p className="text-sm text-gray-600 mb-4 line-clamp-2">{project.description}</p>
 
       {/* Progress bar */}
       <div className="space-y-2">
@@ -152,8 +284,9 @@ function ProjectCard({ project }: ProjectCardProps) {
 
       {/* Deadline */}
       {project.deadline && (
-        <div className="mt-4 text-sm text-gray-500">
-          {locale === 'zh_Hant' ? '截止日期' : 'Deadline'}: {new Date(project.deadline).toLocaleDateString(locale === 'zh_Hant' ? 'zh-TW' : 'en-US')}
+        <div className="mt-4 text-sm text-gray-500 flex items-center">
+          <TrendingUp className="h-3 w-3 mr-1 text-gray-400" />
+          {locale === 'zh_Hant' ? '截止' : 'Due'}: {new Date(project.deadline).toLocaleDateString(locale === 'zh_Hant' ? 'zh-TW' : 'en-US')}
         </div>
       )}
     </Link>

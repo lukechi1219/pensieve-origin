@@ -3,9 +3,11 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Send, User, Bot, Volume2, VolumeX } from 'lucide-react';
 import { chatsApi } from '../api/chats';
 import { jarvisApi } from '../api/jarvis';
-import type { Chat, ChatMessage } from '../types';
+import type { Chat } from '../types';
+import { useI18n } from '../i18n/I18nContext';
 
 export default function ChatDetail() {
+  const { t, locale } = useI18n();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [chat, setChat] = useState<Chat | null>(null);
@@ -14,6 +16,7 @@ export default function ChatDetail() {
   const [newMessage, setNewMessage] = useState('');
   const [sending, setSending] = useState(false);
   const [voiceMode, setVoiceMode] = useState(false);
+  const [isJarvisResponding, setIsJarvisResponding] = useState(false);
 
   useEffect(() => {
     if (id) {
@@ -59,6 +62,7 @@ export default function ChatDetail() {
 
     try {
       setSending(true);
+      setIsJarvisResponding(true); // Start showing JARVIS thinking
 
       const updatedChat = await chatsApi.addMessage(id, messageToSend, language, voiceMode);
       setChat(updatedChat); // Update chat with server response (includes JARVIS reply)
@@ -86,12 +90,13 @@ export default function ChatDetail() {
       setNewMessage(messageToSend);
     } finally {
       setSending(false);
+      setIsJarvisResponding(false); // Stop showing JARVIS thinking
     }
   };
 
   const formatTime = (dateStr: string) => {
     const date = new Date(dateStr);
-    return date.toLocaleString('zh-TW', {
+    return date.toLocaleString(locale === 'zh_Hant' ? 'zh-TW' : 'en-US', {
       month: 'numeric',
       day: 'numeric',
       hour: '2-digit',
@@ -102,7 +107,7 @@ export default function ChatDetail() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-full">
-        <div className="text-gray-500">載入中...</div>
+        <div className="text-gray-500">{t.common.loading}</div>
       </div>
     );
   }
@@ -111,12 +116,12 @@ export default function ChatDetail() {
     return (
       <div className="flex items-center justify-center h-full">
         <div className="text-center">
-          <p className="text-gray-500 mb-4">找不到對話</p>
+          <p className="text-gray-500 mb-4">{t.notes.notFound}</p>
           <button
             onClick={() => navigate('/chats')}
             className="text-blue-600 hover:text-blue-700"
           >
-            返回對話列表
+            {t.common.back}
           </button>
         </div>
       </div>
@@ -137,7 +142,7 @@ export default function ChatDetail() {
           <div className="flex-1">
             <h1 className="text-xl font-bold text-gray-900">{chat.title}</h1>
             <p className="text-sm text-gray-500">
-              {chat.messageCount} 則訊息 • 最後更新: {formatTime(chat.modified)}
+              {chat.messageCount} {t.chat.messages} • {t.chat.lastUpdate}: {formatTime(chat.modified)}
             </p>
           </div>
           <button
@@ -147,17 +152,17 @@ export default function ChatDetail() {
                 ? 'bg-blue-600 text-white hover:bg-blue-700'
                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
             }`}
-            title={voiceMode ? '關閉語音陪聊' : '開啟語音陪聊'}
+            title={voiceMode ? t.chat.disableVoice : t.chat.enableVoice}
           >
             {voiceMode ? (
               <>
                 <Volume2 className="w-5 h-5" />
-                <span>語音陪聊</span>
+                <span>{t.chat.voiceMode}</span>
               </>
             ) : (
               <>
                 <VolumeX className="w-5 h-5" />
-                <span>語音陪聊</span>
+                <span>{t.chat.voiceMode}</span>
               </>
             )}
           </button>
@@ -175,7 +180,7 @@ export default function ChatDetail() {
       <div className="flex-1 overflow-auto px-8 py-6 space-y-4">
         {chat.messages.length === 0 ? (
           <div className="text-center py-12 text-gray-500">
-            尚無訊息，開始對話吧！
+            {t.chat.noMessages}
           </div>
         ) : (
           chat.messages.map((message, idx) => (
@@ -211,6 +216,20 @@ export default function ChatDetail() {
             </div>
           ))
         )}
+        {isJarvisResponding && (
+          <div className="flex gap-4 justify-start">
+            <div className="flex-shrink-0 w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
+              <Bot className="w-5 h-5 text-purple-600 animate-bounce" />
+            </div>
+            <div
+              className="max-w-2xl px-4 py-3 rounded-lg bg-gray-100 text-gray-900"
+            >
+              <div className="whitespace-pre-wrap break-words">
+                {t.chat.sending}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Message Input */}
@@ -221,7 +240,7 @@ export default function ChatDetail() {
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && handleSendMessage()}
-            placeholder="輸入訊息... (Enter 送出)"
+            placeholder={t.chat.inputPlaceholder}
             className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             disabled={sending}
           />
@@ -231,10 +250,11 @@ export default function ChatDetail() {
             className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
           >
             <Send className="w-4 h-4" />
-            {sending ? '傳送中...' : '送出'}
+            {sending ? t.chat.sending : t.chat.sendMessage}
           </button>
         </div>
       </div>
     </div>
   );
 }
+

@@ -12,21 +12,24 @@ export interface UpdateJournalData {
 export const journalsApi = {
   // List journals by date range or month
   list: async (params?: {
-    start_date?: string;
-    end_date?: string;
-    year?: number;
-    month?: number;
+    start?: string;
+    end?: string;
+    month?: string; // Format: YYYY-MM
   }): Promise<ListResponse<Journal>> => {
     const query = new URLSearchParams();
-    if (params?.start_date) query.set('start_date', params.start_date);
-    if (params?.end_date) query.set('end_date', params.end_date);
-    if (params?.year) query.set('year', params.year.toString());
-    if (params?.month) query.set('month', params.month.toString());
+    if (params?.start) query.set('start', params.start);
+    if (params?.end) query.set('end', params.end);
+    if (params?.month) query.set('month', params.month);
 
     const queryString = query.toString();
     const endpoint = `/journals${queryString ? `?${queryString}` : ''}`;
 
-    return apiClient.get<ListResponse<Journal>>(endpoint);
+    // Backend returns { count, journals }, transform to { items, total }
+    const response = await apiClient.get<{ count: number; journals: Journal[] }>(endpoint);
+    return {
+      items: response.journals,
+      total: response.count,
+    };
   },
 
   // Get today's journal

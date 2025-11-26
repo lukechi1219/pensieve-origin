@@ -65,6 +65,7 @@ router.get('/', async (req: Request, res: Response) => {
         isPersonal: note.frontmatter.is_personal,
         isSurprising: note.frontmatter.is_surprising,
         status: note.frontmatter.status,
+        filePath: note.filePath,
       })),
     });
   } catch (error) {
