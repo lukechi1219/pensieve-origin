@@ -66,13 +66,51 @@ export default function Journals() {
     }
   };
 
+  const handleEdit = () => {
+    if (selectedJournal) {
+      setEditContent(selectedJournal.content || '');
+      setIsEditing(true);
+    }
+  };
+
+  const handleCancel = () => {
+    setIsEditing(false);
+    setEditContent('');
+  };
+
+  const handleSave = async () => {
+    if (!selectedJournal) return;
+
+    setIsSaving(true);
+    try {
+      const dateStr = format(selectedDate, 'yyyy-MM-dd');
+      await journalsApi.update(dateStr, { content: editContent });
+      
+      // Update local state immediately
+      const updatedJournal = { ...selectedJournal, content: editContent };
+      setSelectedJournal(updatedJournal);
+      
+      // Update in list as well
+      setJournals(prev => prev.map(j => j.id === updatedJournal.id ? updatedJournal : j));
+      
+      // Reload in background - Removed to prevent race condition with stale data
+      // loadJournalsByMonth(currentMonth);
+      setIsEditing(false);
+    } catch (err) {
+      console.error('Failed to save journal:', err);
+      alert('儲存失敗，請稍後再試');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   const handleCreateJournal = async () => {
     try {
       const dateStr = format(selectedDate, 'yyyy-MM-dd');
       await journalsApi.getByDate(dateStr); // Backend creates if not exists
       await loadJournalsByMonth(currentMonth); // Reload month to show new journal
       loadJournalStats(); // Update stats
-      alert(`已建立 ${dateStr} 的日記`);
+      // alert(`已建立 ${dateStr} 的日記`); // Optional feedback
     } catch (error) {
       console.error('Failed to create journal:', error);
       alert('建立日記失敗');

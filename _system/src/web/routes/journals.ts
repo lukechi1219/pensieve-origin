@@ -55,6 +55,7 @@ router.get('/', async (req: Request, res: Response) => {
         energyLevel: journal.frontmatter.energy_level,
         habitsCompleted: journal.frontmatter.habits_completed,
         tags: journal.frontmatter.tags,
+        content: journal.content,
       })),
     });
   } catch (error) {

@@ -40,7 +40,10 @@ export class ApiClient {
 
   // GET request
   async get<T>(endpoint: string): Promise<T> {
-    return this.request<T>(endpoint, { method: 'GET' });
+    // Add timestamp to prevent caching
+    const separator = endpoint.includes('?') ? '&' : '?';
+    const urlWithTimestamp = `${endpoint}${separator}_t=${new Date().getTime()}`;
+    return this.request<T>(urlWithTimestamp, { method: 'GET' });
   }
 
   // POST request
