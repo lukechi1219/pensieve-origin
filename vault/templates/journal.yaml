@@ -1,0 +1,96 @@
+# Journal Template Schema
+# Used for generating daily journal entries
+
+schema_version: "1.0"
+
+# Metadata template (YAML frontmatter in generated file)
+metadata:
+  id: "{{date_id}}"
+  title: "Journal Entry - {{date_full}}"
+  type: "journal"
+  date: "{{date}}"
+  tags: [journal, daily]
+  mood: ""
+  energy_level: 0
+  habits_completed: []
+  gratitude: []
+
+# Content structure for Markdown generation
+sections:
+  - name: "Morning Reflection"
+    type: "section"
+    content:
+      - type: "prompt"
+        label: "Intention for today"
+        format: "text"
+      - type: "prompt"
+        label: "Top 3 priorities"
+        format: "ordered_list"
+        items: 3
+
+  - name: "Daily Log"
+    type: "section"
+    content:
+      - type: "subsection"
+        title: "Work & Projects"
+      - type: "subsection"
+        title: "Personal & Life"
+      - type: "subsection"
+        title: "Learning & Insights"
+
+  - name: "Evening Review"
+    type: "section"
+    content:
+      - type: "subsection"
+        title: "Wins & Accomplishments"
+        format: "bullet_list"
+        placeholder: "-"
+      - type: "subsection"
+        title: "Challenges & Obstacles"
+        format: "bullet_list"
+        placeholder: "-"
+      - type: "subsection"
+        title: "What I Learned Today"
+        format: "bullet_list"
+        placeholder: "-"
+      - type: "subsection"
+        title: "Gratitude"
+        format: "bullet_list"
+        items: 3
+      - type: "subsection"
+        title: "Tomorrow's Focus"
+        format: "bullet_list"
+        placeholder: "-"
+
+  - name: "Habits Tracker"
+    type: "section"
+    content:
+      - type: "checklist"
+        items:
+          - "Morning routine"
+          - "Exercise"
+          - "Meditation"
+          - "Deep work session"
+          - "Reading"
+          - "Journaling (you're doing it now!)"
+
+  - name: "Mood & Energy"
+    type: "section"
+    content:
+      - type: "prompt"
+        label: "Mood"
+        format: "text"
+        hint: "(productive / focused / stressed / relaxed / energized / tired)"
+      - type: "prompt"
+        label: "Energy Level"
+        format: "scale"
+        scale: "0/10"
+      - type: "prompt"
+        label: "Sleep Quality"
+        format: "scale"
+        scale: "0/10"
+
+  - name: "Notes & Ideas"
+    type: "section"
+    content:
+      - type: "freeform"

@@ -26,6 +26,11 @@ export class Journal {
   /**
    * Create a new journal entry
    */
+  /**
+   * Create a new journal entry
+   * Note: This creates a Journal object but does not generate Markdown from template.
+   * Use TemplateService.instantiate('journal', variables) for full template generation.
+   */
   static create(date: Date = new Date()): Journal {
     const dateId = generateDateId(date);
     const dateStr = formatDate(date);
@@ -43,70 +48,19 @@ export class Journal {
       gratitude: [],
     };
 
-    const content = `# ${dateFull}
-
-## Morning Reflection
-
-**Intention for today:**
-
-
-**Top 3 priorities:**
-1.
-2.
-3.
-
-## Daily Log
-
-### Work & Projects
-
-
-### Personal & Life
-
-
-### Learning & Insights
-
-
-## Evening Review
-
-### Wins & Accomplishments
--
-
-### Challenges & Obstacles
--
-
-### What I Learned Today
--
-
-### Gratitude
--
--
--
-
-### Tomorrow's Focus
--
-
-## Habits Tracker
-
-- [ ] Morning routine
-- [ ] Exercise
-- [ ] Meditation
-- [ ] Deep work session
-- [ ] Reading
-- [ ] Journaling (you're doing it now!)
-
-## Mood & Energy
-
-**Mood**: (productive / focused / stressed / relaxed / energized / tired)
-
-**Energy Level**: 0/10
-
-**Sleep Quality**: 0/10
-
-## Notes & Ideas
-
-`;
+    // Minimal content - full template generation should use TemplateService
+    const content = `# ${dateFull}\n\n`;
 
     return new Journal(frontmatter, content);
+  }
+
+  /**
+   * Create a Journal from template-generated Markdown
+   */
+  static fromTemplate(templateContent: string, filePath?: string): Journal {
+    const matter = require('gray-matter');
+    const { data, content } = matter(templateContent);
+    return new Journal(data as JournalFrontmatter, content.trim(), filePath);
   }
 
   /**

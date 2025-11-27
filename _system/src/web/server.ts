@@ -7,6 +7,7 @@ import journalsRouter from './routes/journals.js';
 import projectsRouter from './routes/projects.js';
 import jarvisRouter from './routes/jarvis.js';
 import chatsRouter from './routes/chats.js';
+import templatesRouter from './routes/templates.js';
 
 dotenv.config();
 
@@ -39,6 +40,7 @@ app.use('/api/journals', journalsRouter);
 app.use('/api/projects', projectsRouter);
 app.use('/api/jarvis', jarvisRouter);
 app.use('/api/chats', chatsRouter);
+app.use('/api/templates', templatesRouter);
 
 // 404 handler
 app.use((req: Request, res: Response) => {
@@ -82,6 +84,9 @@ app.listen(port, () => {
   console.log(`   GET    /api/chats/:id`);
   console.log(`   DELETE /api/chats/:id`);
   console.log(`   POST   /api/chats/:id/messages`);
+  console.log(`   GET    /api/templates`);
+  console.log(`   GET    /api/templates/:name`);
+  console.log(`   POST   /api/templates/:name/instantiate`);
   console.log(`\nPress Ctrl+C to stop`);
 });
 

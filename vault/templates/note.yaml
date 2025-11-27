@@ -1,0 +1,59 @@
+# Note Template Schema
+# Used for capturing new notes in the inbox
+
+schema_version: "1.0"
+
+# Metadata template (YAML frontmatter in generated file)
+metadata:
+  id: "{{id}}"
+  title: "{{title}}"
+  created: "{{created}}"
+  modified: "{{modified}}"
+  tags: []
+  para_folder: "inbox"
+  para_path: "0-inbox"
+
+  # Progressive Summarization
+  distillation_level: 0
+  distillation_history:
+    - level: 0
+      date: "{{created}}"
+      type: "captured"
+
+  # CODE Standards
+  is_inspiring: false
+  is_useful: false
+  is_personal: false
+  is_surprising: false
+
+  status: "active"
+
+# Content structure for Markdown generation
+sections:
+  - name: "{{title}}"
+    type: "heading1"
+
+  - name: "Content"
+    type: "section"
+    content:
+      - type: "freeform"
+        placeholder: "[Your captured content goes here]"
+
+  - name: "Context"
+    type: "section"
+    content:
+      - type: "field"
+        label: "Source"
+      - type: "field"
+        label: "Related to"
+      - type: "field"
+        label: "Why captured"
+
+  - name: "Next Steps"
+    type: "section"
+    content:
+      - type: "checklist"
+        items:
+          - "Review and tag"
+          - "Assign to project"
+          - "Distill key points"

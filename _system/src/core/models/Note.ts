@@ -42,6 +42,8 @@ export class Note {
 
   /**
    * Create a new note with default frontmatter
+   * Note: This creates a Note object but does not generate Markdown from template.
+   * Use TemplateService.instantiate('note', variables) for full template generation.
    */
   static create(title: string, content: string, id: string): Note {
     const now = new Date();
@@ -71,6 +73,15 @@ export class Note {
     };
 
     return new Note(frontmatter, content);
+  }
+
+  /**
+   * Create a Note from template-generated Markdown
+   */
+  static fromTemplate(templateContent: string, filePath?: string): Note {
+    const matter = require('gray-matter');
+    const { data, content } = matter(templateContent);
+    return new Note(data as NoteFrontmatter, content.trim(), filePath);
   }
 
   /**

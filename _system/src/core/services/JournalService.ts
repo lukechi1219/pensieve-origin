@@ -13,7 +13,10 @@ import {
   getYesterday,
   daysBetween,
   parseDateId,
+  formatDate,
+  formatDateFull,
 } from '../utils/dateUtils';
+import { TemplateService } from './TemplateService';
 
 export interface JournalStats {
   totalEntries: number;
@@ -64,11 +67,16 @@ export class JournalService {
         filePath
       );
     } else {
-      // Create new journal entry
-      const journal = Journal.create(date);
-      const fileContent = serializeFrontmatter(journal.frontmatter, journal.content);
-      await writeFile(filePath, fileContent);
-      journal.filePath = filePath;
+      // Create new journal entry from template
+      const templateService = new TemplateService(this.vaultPath);
+      const templateContent = await templateService.instantiate('journal', {
+        date_id: generateDateId(date),
+        date: formatDate(date),
+        date_full: formatDateFull(date),
+      });
+
+      const journal = Journal.fromTemplate(templateContent, filePath);
+      await writeFile(filePath, templateContent);
       return journal;
     }
   }

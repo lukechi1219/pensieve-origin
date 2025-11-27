@@ -9,7 +9,8 @@ import {
   moveFile,
   deleteFile,
 } from '../utils/fileSystem';
-import { generateTimestampId } from '../utils/dateUtils';
+import { generateTimestampId, formatDateTime } from '../utils/dateUtils';
+import { TemplateService } from './TemplateService';
 import { sanitizeSubPath, validatePathWithinBase } from '../utils/pathSecurity';
 
 export class NoteService {
@@ -82,7 +83,66 @@ export class NoteService {
   }
 
   /**
-   * Create a new note
+   * Create a new note from template
+   */
+  static async createFromTemplate(
+    title: string,
+    options?: {
+      tags?: string[];
+      isInspiring?: boolean;
+      isUseful?: boolean;
+      isPersonal?: boolean;
+      isSurprising?: boolean;
+    }
+  ): Promise<Note> {
+    const id = generateTimestampId();
+    const now = new Date();
+    const timestamp = formatDateTime(now);
+
+    // Generate note from template
+    const templateService = new TemplateService(this.vaultPath);
+    const templateContent = await templateService.instantiate('note', {
+      id,
+      title,
+      created: timestamp,
+      modified: timestamp,
+    });
+
+    // Parse the template-generated content
+    const note = Note.fromTemplate(templateContent);
+
+    // Apply options if provided
+    if (options) {
+      if (options.tags) {
+        note.frontmatter.tags = options.tags;
+      }
+      if (options.isInspiring !== undefined) {
+        note.frontmatter.is_inspiring = options.isInspiring;
+      }
+      if (options.isUseful !== undefined) {
+        note.frontmatter.is_useful = options.isUseful;
+      }
+      if (options.isPersonal !== undefined) {
+        note.frontmatter.is_personal = options.isPersonal;
+      }
+      if (options.isSurprising !== undefined) {
+        note.frontmatter.is_surprising = options.isSurprising;
+      }
+    }
+
+    const filePath = this.getNotePath(note);
+    const fileContent = serializeFrontmatter(note.frontmatter, note.content);
+
+    await writeFile(filePath, fileContent);
+    note.filePath = filePath;
+
+    this.invalidateCache();
+    return note;
+  }
+
+  /**
+   * Create a new note (legacy method for backward compatibility)
+   * For quick captures without full template structure
    */
   static async create(
     title: string,
