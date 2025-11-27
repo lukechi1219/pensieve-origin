@@ -143,25 +143,16 @@ export default function Journals() {
         updatePayload.sleepQuality = sleepQuality;
       }
 
-      // Update with parsed data
-      await journalsApi.update(dateStr, updatePayload);
+      // Update with parsed data and wait for server response
+      const updatedJournal = await journalsApi.update(dateStr, updatePayload);
 
-      // Update local state immediately
-      const updatedJournal = {
-        ...selectedJournal,
-        content: editContent,
-        habitsCompleted,
-        mood,
-        energyLevel,
-        ...(sleepQuality !== undefined && { sleepQuality })
-      };
+      // Use server response instead of optimistic update
+      // This ensures we have the correct timestamps and any server-side modifications
       setSelectedJournal(updatedJournal);
 
-      // Update in list as well
+      // Update in list as well with server response
       setJournals(prev => prev.map(j => j.id === updatedJournal.id ? updatedJournal : j));
 
-      // Reload in background - Removed to prevent race condition with stale data
-      // loadJournalsByMonth(currentMonth);
       setIsEditing(false);
     } catch (err) {
       console.error('Failed to save journal:', err);

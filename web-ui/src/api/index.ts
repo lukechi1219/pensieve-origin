@@ -3,3 +3,4 @@ export * from './notes';
 export * from './journals';
 export * from './projects';
 export * from './chats';
+export * from './jarvis';

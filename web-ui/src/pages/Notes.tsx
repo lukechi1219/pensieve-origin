@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { notesApi } from '../api';
+import { notesApi, jarvisApi } from '../api';
 import type { Note } from '../types';
-import { FileText, Tag, Plus, Folder } from 'lucide-react';
+import { FileText, Tag, Plus, Folder, CheckSquare, Square, Sparkles } from 'lucide-react';
 import { useI18n } from '../i18n/I18nContext';
+import type { BatchSummarizeProgress } from '../api/jarvis';
 
 export default function Notes() {
   const { t } = useI18n();
@@ -18,6 +19,17 @@ export default function Notes() {
   const [subfolderName, setSubfolderName] = useState('');
   const [subfolders, setSubfolders] = useState<Array<{ name: string; count: number }>>([]);
   const [selectedSubfolder, setSelectedSubfolder] = useState<string | null>(null);
+
+  // Batch summarization state
+  const [selectedNoteIds, setSelectedNoteIds] = useState<Set<string>>(new Set());
+  const [showBatchModal, setShowBatchModal] = useState(false);
+  const [batchProgress, setBatchProgress] = useState<{
+    current: number;
+    total: number;
+    noteId?: string;
+    results: Array<{ noteId: string; summary: string; error?: string }>;
+  } | null>(null);
+  const [batchRunning, setBatchRunning] = useState(false);
 
   useEffect(() => {
     loadNotes();
@@ -109,6 +121,92 @@ export default function Notes() {
     setSelectedSubfolder(selectedSubfolder === subfolderName ? null : subfolderName);
   };
 
+  // Batch summarization handlers
+  const toggleNoteSelection = (noteId: string) => {
+    const newSelection = new Set(selectedNoteIds);
+    if (newSelection.has(noteId)) {
+      newSelection.delete(noteId);
+    } else {
+      newSelection.add(noteId);
+    }
+    setSelectedNoteIds(newSelection);
+  };
+
+  const selectAllNotes = () => {
+    setSelectedNoteIds(new Set(filteredNotes.map(n => n.id)));
+  };
+
+  const clearSelection = () => {
+    setSelectedNoteIds(new Set());
+  };
+
+  const handleBatchSummarize = async () => {
+    if (selectedNoteIds.size === 0) return;
+
+    setBatchRunning(true);
+    setShowBatchModal(true);
+    setBatchProgress({
+      current: 0,
+      total: selectedNoteIds.size,
+      results: [],
+    });
+
+    try {
+      await jarvisApi.batchSummarize(
+        Array.from(selectedNoteIds),
+        {
+          language: 'zh', // TODO: Use user preference
+          voice: false,
+          onProgress: (event: BatchSummarizeProgress) => {
+            if (event.type === 'progress') {
+              setBatchProgress(prev => ({
+                ...prev!,
+                current: event.current || 0,
+                total: event.total || prev!.total,
+                noteId: event.noteId,
+              }));
+            } else if (event.type === 'result' && event.noteId && event.summary) {
+              setBatchProgress(prev => ({
+                ...prev!,
+                results: [
+                  ...prev!.results,
+                  {
+                    noteId: event.noteId!,
+                    summary: event.summary!,
+                    error: event.error,
+                  },
+                ],
+              }));
+            }
+          },
+          onComplete: (results: Array<{ noteId: string; summary: string; error?: string }>) => {
+            setBatchProgress(prev => ({
+              ...prev!,
+              current: prev!.total,
+              results,
+            }));
+            setBatchRunning(false);
+          },
+          onError: (error: string) => {
+            console.error('Batch summarization failed:', error);
+            alert(`批次總結失敗: ${error}`);
+            setBatchRunning(false);
+          },
+        }
+      );
+    } catch (error) {
+      console.error('Failed to start batch summarization:', error);
+      alert('啟動批次總結失敗');
+      setBatchRunning(false);
+    }
+  };
+
+  const closeBatchModal = () => {
+    setShowBatchModal(false);
+    setBatchProgress(null);
+    clearSelection();
+  };
+
   return (
     <div className="space-y-6">
       {/* Page header */}
@@ -187,6 +285,42 @@ export default function Notes() {
           </p>
         </div>
 
+        {/* Batch Actions Toolbar */}
+        {filteredNotes.length > 0 && (
+          <div className="mb-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
+            <div className="flex items-center justify-between flex-wrap gap-3">
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={selectAllNotes}
+                  className="flex items-center gap-2 px-3 py-1.5 text-sm text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                >
+                  <CheckSquare className="h-4 w-4" />
+                  全選
+                </button>
+                <button
+                  onClick={clearSelection}
+                  disabled={selectedNoteIds.size === 0}
+                  className="flex items-center gap-2 px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-100 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <Square className="h-4 w-4" />
+                  清除
+                </button>
+                <span className="text-sm text-gray-600">
+                  已選擇 {selectedNoteIds.size} / {filteredNotes.length} 個筆記
+                </span>
+              </div>
+              <button
+                onClick={handleBatchSummarize}
+                disabled={selectedNoteIds.size === 0 || batchRunning}
+                className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
+              >
+                <Sparkles className="h-4 w-4" />
+                批次總結 ({selectedNoteIds.size})
+              </button>
+            </div>
+          </div>
+        )}
+
         {filteredNotes.length === 0 ? (
           <div className="py-12 text-center">
             <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
@@ -197,7 +331,12 @@ export default function Notes() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {filteredNotes.map((note) => (
-              <NoteCard key={note.id} note={note} />
+              <NoteCard
+                key={note.id}
+                note={note}
+                isSelected={selectedNoteIds.has(note.id)}
+                onToggleSelect={toggleNoteSelection}
+              />
             ))}
           </div>
         )}
@@ -275,15 +414,137 @@ export default function Notes() {
           </div>
         </div>
       )}
+
+      {/* Batch Summarization Progress Modal */}
+      {showBatchModal && batchProgress && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[80vh] overflow-hidden flex flex-col">
+            {/* Header */}
+            <div className="p-6 border-b border-gray-200">
+              <h2 className="text-2xl font-bold text-gray-900">批次總結進度</h2>
+              <p className="text-sm text-gray-600 mt-1">
+                {batchRunning ? '正在處理筆記...' : '處理完成'}
+              </p>
+            </div>
+
+            {/* Progress Bar */}
+            <div className="p-6 border-b border-gray-200">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-medium text-gray-700">
+                  進度: {batchProgress.current} / {batchProgress.total}
+                </span>
+                <span className="text-sm text-gray-600">
+                  {Math.round((batchProgress.current / batchProgress.total) * 100)}%
+                </span>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+                <div
+                  className="bg-purple-600 h-3 rounded-full transition-all duration-500 ease-out"
+                  style={{
+                    width: `${(batchProgress.current / batchProgress.total) * 100}%`,
+                  }}
+                />
+              </div>
+            </div>
+
+            {/* Results List */}
+            <div className="flex-1 overflow-y-auto p-6 space-y-4">
+              {Array.from(selectedNoteIds).map((noteId) => {
+                const result = batchProgress.results.find(r => r.noteId === noteId);
+                const note = notes.find(n => n.id === noteId);
+                const isProcessing = batchProgress.noteId === noteId && !result;
+                const isPending = !result && !isProcessing;
+
+                return (
+                  <div
+                    key={noteId}
+                    className={`p-4 rounded-lg border-2 transition-all ${
+                      result
+                        ? result.error
+                          ? 'bg-red-50 border-red-200'
+                          : 'bg-green-50 border-green-200'
+                        : isProcessing
+                        ? 'bg-blue-50 border-blue-200 animate-pulse'
+                        : 'bg-gray-50 border-gray-200'
+                    }`}
+                  >
+                    <div className="flex items-start gap-3">
+                      {/* Status Icon */}
+                      <div className="mt-1">
+                        {result ? (
+                          result.error ? (
+                            <span className="text-red-500 text-xl">✗</span>
+                          ) : (
+                            <span className="text-green-500 text-xl">✓</span>
+                          )
+                        ) : isProcessing ? (
+                          <span className="text-blue-500 text-xl">⏳</span>
+                        ) : (
+                          <span className="text-gray-400 text-xl">⏸</span>
+                        )}
+                      </div>
+
+                      {/* Note Info */}
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-semibold text-gray-900 mb-1 truncate">
+                          {note?.title || noteId}
+                        </h3>
+                        {result && (
+                          <div className="mt-2">
+                            {result.error ? (
+                              <p className="text-sm text-red-700">
+                                錯誤: {result.error}
+                              </p>
+                            ) : (
+                              <p className="text-sm text-gray-700 line-clamp-3">
+                                {result.summary}
+                              </p>
+                            )}
+                          </div>
+                        )}
+                        {isProcessing && (
+                          <p className="text-sm text-blue-700">處理中...</p>
+                        )}
+                        {isPending && (
+                          <p className="text-sm text-gray-500">等待中...</p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Footer */}
+            <div className="p-6 border-t border-gray-200 flex justify-end gap-3">
+              {!batchRunning && (
+                <button
+                  onClick={closeBatchModal}
+                  className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors shadow-sm"
+                >
+                  完成
+                </button>
+              )}
+              {batchRunning && (
+                <p className="text-sm text-gray-600 py-2">
+                  處理中，請稍候...
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
 
 interface NoteCardProps {
   note: Note;
+  isSelected: boolean;
+  onToggleSelect: (noteId: string) => void;
 }
 
-function NoteCard({ note }: NoteCardProps) {
+function NoteCard({ note, isSelected, onToggleSelect }: NoteCardProps) {
   const { t } = useI18n();
 
   type CodeFlag = { label: string; color: string };
@@ -295,10 +556,34 @@ function NoteCard({ note }: NoteCardProps) {
   ].filter(Boolean) as CodeFlag[];
 
   return (
-    <Link
-      to={`/note/${note.id}`}
-      className="bg-white rounded-lg shadow p-6 hover:shadow-md transition-shadow"
+    <div
+      className={`bg-white rounded-lg shadow p-6 hover:shadow-md transition-all relative ${
+        isSelected ? 'ring-2 ring-purple-500' : ''
+      }`}
     >
+      {/* Checkbox */}
+      <div className="absolute top-4 right-4 z-10">
+        <button
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            onToggleSelect(note.id);
+          }}
+          className="p-1 hover:bg-gray-100 rounded transition-colors"
+        >
+          {isSelected ? (
+            <CheckSquare className="h-5 w-5 text-purple-600" />
+          ) : (
+            <Square className="h-5 w-5 text-gray-400" />
+          )}
+        </button>
+      </div>
+
+      {/* Clickable content */}
+      <Link
+        to={`/note/${note.id}`}
+        className="block"
+      >
       <h3 className="font-semibold text-gray-900 mb-2">{note.title}</h3>
 
       {/* Preview content */}
@@ -349,6 +634,7 @@ function NoteCard({ note }: NoteCardProps) {
           {new Date(note.created).toLocaleDateString('zh-TW')}
         </div>
       </div>
-    </Link>
+      </Link>
+    </div>
   );
 }

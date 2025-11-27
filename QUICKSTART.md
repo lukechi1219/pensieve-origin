@@ -39,7 +39,43 @@ After installation completes, continue to the **Starting the Servers** section b
 
 ## Starting the Servers
 
-After running `./init.sh`, you'll need **two terminal windows** to run the servers:
+### Option 1: Network Launcher (Recommended)
+
+Use the interactive network launcher to choose your IP address and start both servers automatically:
+
+```bash
+./start-network.sh
+```
+
+This script will:
+1. 🔍 Detect all available IPv4 addresses
+2. 📋 Let you choose which IP to use (localhost, network IP, or 0.0.0.0)
+3. 🔧 Update all configuration files automatically
+4. 🚀 Start both backend and frontend servers
+
+**Example:**
+```
+Available IP addresses:
+
+  [1] 192.168.0.23 (network accessible)
+  [2] localhost (local access only)
+  [3] 0.0.0.0 (all interfaces - recommended for network access)
+
+Select IP address [1-3]: 3
+
+✓ Selected IP: 0.0.0.0
+🌐 Open your browser:
+   Local:   http://localhost:5173/
+   Network: http://192.168.0.23:5173/
+```
+
+**To stop servers:** Press `Ctrl+C`
+
+---
+
+### Option 2: Manual Start (Two Terminals)
+
+If you prefer to run servers manually, use **two terminal windows**:
 
 **Terminal 1 - Backend API Server:**
 
@@ -68,6 +104,8 @@ VITE v7.2.4  ready in XXX ms
 ```
 
 **Open your browser** and visit: **http://localhost:5173/**
+
+> **Note:** For network access from other devices, see [Local Network Setup Guide](LOCAL_NETWORK_SETUP.md) or use the network launcher script above.
 
 You should see the Pensieve dashboard with:
 - Inbox notes count

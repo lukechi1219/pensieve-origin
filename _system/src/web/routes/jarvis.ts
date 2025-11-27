@@ -2,6 +2,15 @@ import { Router, Request, Response } from 'express';
 import { JarvisService } from '../../core/services/JarvisService';
 import { spawn } from 'child_process';
 import path from 'path';
+import {
+  validateBody,
+  validateParams,
+  noteIdSchema,
+  summarizeNoteSchema,
+  distillNoteSchema,
+  batchSummarizeSchema,
+  speakSchema,
+} from '../middleware/validation.js';
 
 const router = Router();
 
@@ -24,17 +33,10 @@ const router = Router();
  *   }
  * }
  */
-router.post('/summarize/:id', async (req: Request, res: Response) => {
+router.post('/summarize/:id', validateParams(noteIdSchema), validateBody(summarizeNoteSchema), async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const { language = 'en', voice = false } = req.body;
-
-    if (!['en', 'zh'].includes(language)) {
-      return res.status(400).json({
-        success: false,
-        error: "Language must be 'en' or 'zh'",
-      });
-    }
+    const { language, voice } = req.body;
 
     const result = await JarvisService.summarizeNote(id, language, voice);
 
@@ -68,24 +70,10 @@ router.post('/summarize/:id', async (req: Request, res: Response) => {
  *   data: Note (updated with new distillation level)
  * }
  */
-router.post('/distill/:id', async (req: Request, res: Response) => {
+router.post('/distill/:id', validateParams(noteIdSchema), validateBody(distillNoteSchema), async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const { targetLevel, language = 'en', voice = false } = req.body;
-
-    if (typeof targetLevel !== 'number' || targetLevel < 0 || targetLevel > 4) {
-      return res.status(400).json({
-        success: false,
-        error: 'targetLevel must be a number between 0 and 4',
-      });
-    }
-
-    if (!['en', 'zh'].includes(language)) {
-      return res.status(400).json({
-        success: false,
-        error: "Language must be 'en' or 'zh'",
-      });
-    }
+    const { targetLevel, language, voice } = req.body;
 
     const updatedNote = await JarvisService.distillNote(
       id,
@@ -124,23 +112,9 @@ router.post('/distill/:id', async (req: Request, res: Response) => {
  * - data: { type: 'result', noteId: string, summary: string, error?: string }
  * - data: { type: 'complete', results: Array }
  */
-router.post('/batch-summarize', async (req: Request, res: Response) => {
+router.post('/batch-summarize', validateBody(batchSummarizeSchema), async (req: Request, res: Response) => {
   try {
-    const { noteIds, language = 'en', voice = false } = req.body;
-
-    if (!Array.isArray(noteIds) || noteIds.length === 0) {
-      return res.status(400).json({
-        success: false,
-        error: 'noteIds must be a non-empty array',
-      });
-    }
-
-    if (!['en', 'zh'].includes(language)) {
-      return res.status(400).json({
-        success: false,
-        error: "Language must be 'en' or 'zh'",
-      });
-    }
+    const { noteIds, language, voice } = req.body;
 
     // Set up SSE
     res.setHeader('Content-Type', 'text/event-stream');
@@ -252,34 +226,13 @@ router.get('/distillation-levels', (req: Request, res: Response) => {
  *   }
  * }
  */
-router.post('/speak', async (req: Request, res: Response) => {
+router.post('/speak', validateBody(speakSchema), async (req: Request, res: Response) => {
   try {
-    const { text, language = 'en' } = req.body;
+    const { text, language } = req.body;
 
-    if (!text || typeof text !== 'string') {
-      return res.status(400).json({
-        success: false,
-        error: 'Text is required',
-      });
-    }
-
-    if (!['en', 'zh'].includes(language)) {
-      return res.status(400).json({
-        success: false,
-        error: "Language must be 'en' or 'zh'",
-      });
-    }
-
-    // SECURITY FIX: Validate input before processing
+    // SECURITY FIX: Additional control character validation
+    // (Zod already validates length and required fields)
     try {
-      // Max length validation
-      if (text.length > 10000) {
-        return res.status(400).json({
-          success: false,
-          error: 'Text too long (max 10000 characters)',
-        });
-      }
-
       // Control character validation
       if (/[\x00-\x1F\x7F]/.test(text)) {
         return res.status(400).json({

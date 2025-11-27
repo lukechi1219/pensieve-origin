@@ -2,6 +2,14 @@ import { Router, Request, Response } from 'express';
 import { NoteService } from '../../core/services/NoteService.js';
 import { config } from '../../core/utils/config.js';
 import { validatePARAFolder } from '../../core/utils/pathSecurity.js';
+import {
+  validateBody,
+  validateParams,
+  noteIdSchema,
+  createNoteSchema,
+  updateNoteSchema,
+  moveNoteSchema,
+} from '../middleware/validation.js';
 
 const router = Router();
 
@@ -120,7 +128,7 @@ router.get('/', async (req: Request, res: Response) => {
  * GET /api/notes/:id
  * Get a specific note by ID
  */
-router.get('/:id', async (req: Request, res: Response) => {
+router.get('/:id', validateParams(noteIdSchema), async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const note = await NoteService.getById(id);
@@ -162,16 +170,9 @@ router.get('/:id', async (req: Request, res: Response) => {
  * POST /api/notes
  * Create a new note
  */
-router.post('/', async (req: Request, res: Response) => {
+router.post('/', validateBody(createNoteSchema), async (req: Request, res: Response) => {
   try {
     const { title, content, tags, isInspiring, isUseful, isPersonal, isSurprising } = req.body;
-
-    if (!title || content === undefined) {
-      return res.status(400).json({
-        error: 'Missing required fields',
-        message: 'title is required',
-      });
-    }
 
     const note = await NoteService.create(title, content || '', {
       tags: tags || [],
@@ -202,7 +203,7 @@ router.post('/', async (req: Request, res: Response) => {
  * PUT /api/notes/:id
  * Update a note
  */
-router.put('/:id', async (req: Request, res: Response) => {
+router.put('/:id', validateParams(noteIdSchema), validateBody(updateNoteSchema), async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const { content, tags } = req.body;
@@ -245,7 +246,7 @@ router.put('/:id', async (req: Request, res: Response) => {
  * DELETE /api/notes/:id
  * Delete a note
  */
-router.delete('/:id', async (req: Request, res: Response) => {
+router.delete('/:id', validateParams(noteIdSchema), async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
 
@@ -276,34 +277,17 @@ router.delete('/:id', async (req: Request, res: Response) => {
  * Move note to different folder
  *
  * SECURITY: Protected against path traversal (VULN-002)
- * - Validates folder parameter
- * - Validates subPath length
+ * - Validates folder parameter via Zod schema
+ * - Validates subPath length via Zod schema
  * - Logs security violations
  * - NoteService.moveTo() performs additional validation
  */
-router.post('/:id/move', async (req: Request, res: Response) => {
+router.post('/:id/move', validateParams(noteIdSchema), validateBody(moveNoteSchema), async (req: Request, res: Response) => {
   // Declare variables outside try block for error handler access
   const { id } = req.params;
   const { folder, subPath } = req.body;
 
   try {
-    // SECURITY FIX: Validate folder using type guard
-    try {
-      validatePARAFolder(folder);
-    } catch (err: any) {
-      return res.status(400).json({
-        error: 'Invalid folder',
-        message: err.message,
-      });
-    }
-
-    // SECURITY FIX: Validate subPath length (prevent resource exhaustion)
-    if (subPath && typeof subPath === 'string' && subPath.length > 200) {
-      return res.status(400).json({
-        error: 'Path too long',
-        message: 'subPath must be 200 characters or less',
-      });
-    }
 
     const note = await NoteService.getById(id);
     if (!note) {

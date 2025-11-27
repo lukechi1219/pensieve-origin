@@ -14,10 +14,38 @@ dotenv.config();
 const app: Express = express();
 const port = config.webPort;
 
+// SECURITY FIX (VULN-004): Configure CORS with allowlist
+// Only allow requests from trusted origins to prevent CSRF attacks
+const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || [
+  'http://localhost:5173',  // Frontend dev server (Vite)
+  'http://localhost:3000',  // Backend dev server
+  'http://127.0.0.1:5173',  // Alternative localhost
+  'http://127.0.0.1:3000',  // Alternative localhost
+];
+
+app.use(cors({
+  origin: (origin, callback) => {
+    // Allow requests with no origin (e.g., mobile apps, Postman, curl)
+    // In production, you may want to remove this for stricter security
+    if (!origin) {
+      return callback(null, true);
+    }
+
+    if (allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      console.warn(`[SECURITY] CORS blocked origin: ${origin}`);
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true, // Allow cookies/auth headers if needed
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+}));
+
 // Middleware
-app.use(cors());
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: '1mb' })); // SECURITY: Limit request body size
+app.use(express.urlencoded({ extended: true, limit: '1mb' }));
 
 // Request logging
 app.use((req: Request, res: Response, next: NextFunction) => {
@@ -60,8 +88,9 @@ app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
 });
 
 // Start server
-app.listen(port, () => {
-  console.log(`🚀 Pensieve API server running on http://localhost:${port}`);
+const host = process.env.WEB_HOST || 'localhost';
+app.listen(port, host, () => {
+  console.log(`🚀 Pensieve API server running on http://${host}:${port}`);
   console.log(`📂 Vault: ${config.vaultPath}`);
   console.log(`\n📚 API Endpoints:`);
   console.log(`   GET    /health`);

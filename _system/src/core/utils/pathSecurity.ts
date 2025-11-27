@@ -147,3 +147,66 @@ export function validatePARAFolder(
     );
   }
 }
+
+/**
+ * Sanitize and validate a project name to prevent path traversal
+ *
+ * Project names are used in directory paths like: 1-projects/project-{name}/
+ * This function prevents attacks like: "../../../etc/passwd"
+ *
+ * @param projectName - User-provided project name
+ * @returns Sanitized project name
+ * @throws Error if projectName contains malicious patterns
+ */
+export function sanitizeProjectName(projectName: string | undefined): string {
+  // Empty or undefined is invalid
+  if (!projectName || projectName.trim() === '') {
+    throw new Error('Project name cannot be empty');
+  }
+
+  const trimmed = projectName.trim();
+
+  // Reject absolute paths
+  if (path.isAbsolute(trimmed)) {
+    throw new Error('Absolute paths not allowed in project name');
+  }
+
+  // Reject parent directory references (..)
+  if (trimmed.includes('..')) {
+    throw new Error('Parent directory references (..) not allowed in project name');
+  }
+
+  // Reject paths with slashes (project names should be single directory names)
+  if (trimmed.includes('/') || trimmed.includes('\\')) {
+    throw new Error('Slashes not allowed in project name (must be a single directory name)');
+  }
+
+  // Reject null bytes (path truncation attack)
+  if (trimmed.includes('\0')) {
+    throw new Error('Null bytes not allowed in project name');
+  }
+
+  // Max length validation (prevent resource exhaustion)
+  if (trimmed.length > 100) {
+    throw new Error('Project name too long (max 100 characters)');
+  }
+
+  // Allowlist: alphanumeric, dash, underscore only
+  // More restrictive than subPath since project names are used as directory names
+  if (!/^[a-zA-Z0-9_\-]+$/.test(trimmed)) {
+    throw new Error('Project name contains invalid characters (only alphanumeric, -, _ allowed)');
+  }
+
+  // Reject reserved names (Windows reserved names)
+  const reserved = ['CON', 'PRN', 'AUX', 'NUL', 'COM1', 'COM2', 'COM3', 'COM4', 'COM5', 'COM6', 'COM7', 'COM8', 'COM9', 'LPT1', 'LPT2', 'LPT3', 'LPT4', 'LPT5', 'LPT6', 'LPT7', 'LPT8', 'LPT9'];
+  if (reserved.includes(trimmed.toUpperCase())) {
+    throw new Error(`Project name "${trimmed}" is a reserved system name`);
+  }
+
+  // Reject names starting with . (hidden files)
+  if (trimmed.startsWith('.')) {
+    throw new Error('Project name cannot start with . (hidden files not allowed)');
+  }
+
+  return trimmed;
+}

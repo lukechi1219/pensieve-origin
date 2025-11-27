@@ -2,6 +2,7 @@ import { Suspense, lazy } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { I18nProvider } from './i18n/I18nContext';
 import Layout from './components/Layout';
+import ErrorBoundary from './components/ErrorBoundary';
 import { Loader2 } from 'lucide-react';
 
 // Lazy load pages for performance optimization
@@ -23,25 +24,27 @@ const PageLoader = () => (
 
 function App() {
   return (
-    <I18nProvider>
-      <BrowserRouter>
-        <Suspense fallback={<PageLoader />}>
-          <Routes>
-            <Route path="/" element={<Layout />}>
-              <Route index element={<Dashboard />} />
-              <Route path="note/:id" element={<NoteDetail />} />
-              <Route path="notes/:folder" element={<Notes />} />
-              <Route path="journals" element={<Journals />} />
-              <Route path="journal/:id" element={<JournalDetail />} />
-              <Route path="projects" element={<Projects />} />
-              <Route path="projects/:name" element={<ProjectDetail />} />
-              <Route path="chats" element={<Chats />} />
-              <Route path="chats/:id" element={<ChatDetail />} />
-            </Route>
-          </Routes>
-        </Suspense>
-      </BrowserRouter>
-    </I18nProvider>
+    <ErrorBoundary>
+      <I18nProvider>
+        <BrowserRouter>
+          <Suspense fallback={<PageLoader />}>
+            <Routes>
+              <Route path="/" element={<Layout />}>
+                <Route index element={<Dashboard />} />
+                <Route path="note/:id" element={<NoteDetail />} />
+                <Route path="notes/:folder" element={<Notes />} />
+                <Route path="journals" element={<Journals />} />
+                <Route path="journal/:id" element={<JournalDetail />} />
+                <Route path="projects" element={<Projects />} />
+                <Route path="projects/:name" element={<ProjectDetail />} />
+                <Route path="chats" element={<Chats />} />
+                <Route path="chats/:id" element={<ChatDetail />} />
+              </Route>
+            </Routes>
+          </Suspense>
+        </BrowserRouter>
+      </I18nProvider>
+    </ErrorBoundary>
   );
 }
 

@@ -9,7 +9,7 @@ import ReactMarkdown from 'react-markdown';
 export default function JournalDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { t, locale } = useI18n();
+  const { locale } = useI18n();
   const [journal, setJournal] = useState<Journal | null>(null);
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);

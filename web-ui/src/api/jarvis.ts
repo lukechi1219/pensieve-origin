@@ -1,5 +1,13 @@
 import type { Note } from '../types';
 import { apiClient } from './client';
+import {
+  SummarizeApiResponseSchema,
+  DistillNoteResponseSchema,
+  DistillationLevelsResponseSchema,
+  SpeakApiResponseSchema,
+  validateResponse,
+  extractData,
+} from './schemas';
 
 /**
  * Jarvis API Client
@@ -42,14 +50,15 @@ export const jarvisApi = {
       voice?: boolean;
     }
   ): Promise<SummarizeResponse> => {
-    const response = await apiClient.post<{ success: boolean; data: SummarizeResponse }>(
+    const response = await apiClient.post(
       `/jarvis/summarize/${noteId}`,
       {
         language: options?.language || 'en',
         voice: options?.voice || false,
       }
     );
-    return response.data;
+    const validated = validateResponse(response, SummarizeApiResponseSchema, 'jarvis.summarize');
+    return extractData(validated);
   },
 
   /**
@@ -63,7 +72,7 @@ export const jarvisApi = {
       voice?: boolean;
     }
   ): Promise<Note> => {
-    const response = await apiClient.post<{ success: boolean; data: Note }>(
+    const response = await apiClient.post(
       `/jarvis/distill/${noteId}`,
       {
         targetLevel,
@@ -71,13 +80,15 @@ export const jarvisApi = {
         voice: options?.voice || false,
       }
     );
-    return response.data;
+    const validated = validateResponse(response, DistillNoteResponseSchema, 'jarvis.distill');
+    return extractData(validated);
   },
 
   /**
    * Batch summarize multiple notes with progress tracking via SSE
+   * Fixed: Uses fetch + ReadableStream instead of EventSource (which doesn't support POST)
    */
-  batchSummarize: (
+  batchSummarize: async (
     noteIds: string[],
     options: {
       language?: 'en' | 'zh';
@@ -86,82 +97,96 @@ export const jarvisApi = {
       onComplete?: (results: Array<{ noteId: string; summary: string; error?: string }>) => void;
       onError?: (error: string) => void;
     }
-  ): EventSource => {
+  ): Promise<void> => {
     const baseURL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
     const url = `${baseURL}/jarvis/batch-summarize`;
 
-    // Create EventSource for SSE
-    const eventSource = new EventSource(url);
+    try {
+      // Send POST request with fetch (supports request body unlike EventSource)
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          noteIds,
+          language: options.language || 'en',
+          voice: options.voice || false,
+        }),
+      });
 
-    // Handle messages
-    eventSource.onmessage = (event) => {
-      try {
-        const data: BatchSummarizeProgress = JSON.parse(event.data);
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
 
-        if (data.type === 'progress' && options.onProgress) {
-          options.onProgress(data);
-        } else if (data.type === 'result' && options.onProgress) {
-          options.onProgress(data);
-        } else if (data.type === 'complete') {
-          if (options.onComplete && data.results) {
-            options.onComplete(data.results);
-          }
-          eventSource.close();
-        } else if (data.type === 'error') {
-          if (options.onError && data.error) {
-            options.onError(data.error);
-          }
-          eventSource.close();
+      if (!response.body) {
+        throw new Error('Response body is null');
+      }
+
+      // Read SSE stream manually using ReadableStream
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+
+        if (done) {
+          break;
         }
-      } catch (error) {
-        console.error('Error parsing SSE data:', error);
-        if (options.onError) {
-          options.onError('Failed to parse server response');
+
+        // Decode chunk and add to buffer
+        buffer += decoder.decode(value, { stream: true });
+
+        // Process complete lines (SSE messages end with \n\n)
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || ''; // Keep incomplete line in buffer
+
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            try {
+              const eventData = line.slice(6); // Remove 'data: ' prefix
+              const data: BatchSummarizeProgress = JSON.parse(eventData);
+
+              // Handle different event types
+              if (data.type === 'progress' && options.onProgress) {
+                options.onProgress(data);
+              } else if (data.type === 'result' && options.onProgress) {
+                options.onProgress(data);
+              } else if (data.type === 'complete') {
+                if (options.onComplete && data.results) {
+                  options.onComplete(data.results);
+                }
+                return; // Complete - exit
+              } else if (data.type === 'error') {
+                if (options.onError && data.error) {
+                  options.onError(data.error);
+                }
+                return; // Error - exit
+              }
+            } catch (parseError) {
+              console.error('Error parsing SSE event:', parseError);
+            }
+          }
         }
-        eventSource.close();
       }
-    };
-
-    // Handle errors
-    eventSource.onerror = (error) => {
-      console.error('SSE error:', error);
+    } catch (error) {
+      console.error('Batch summarize error:', error);
       if (options.onError) {
-        options.onError('Connection error');
+        options.onError(
+          error instanceof Error ? error.message : 'Failed to batch summarize notes'
+        );
       }
-      eventSource.close();
-    };
-
-    // Send the initial request via POST (SSE doesn't support request body directly)
-    // We need to use fetch to send the POST request first
-    fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        noteIds,
-        language: options.language || 'en',
-        voice: options.voice || false,
-      }),
-    }).catch((error) => {
-      console.error('Failed to initiate batch summarize:', error);
-      if (options.onError) {
-        options.onError('Failed to initiate batch summarization');
-      }
-      eventSource.close();
-    });
-
-    return eventSource;
+    }
   },
 
   /**
    * Get information about all distillation levels
    */
   getDistillationLevels: async (): Promise<DistillationLevel[]> => {
-    const response = await apiClient.get<{ success: boolean; data: DistillationLevel[] }>(
-      '/jarvis/distillation-levels'
-    );
-    return response.data;
+    const response = await apiClient.get('/jarvis/distillation-levels');
+    const validated = validateResponse(response, DistillationLevelsResponseSchema, 'jarvis.getDistillationLevels');
+    return extractData(validated);
   },
 
   /**
@@ -171,13 +196,14 @@ export const jarvisApi = {
     text: string,
     language: 'en' | 'zh' = 'en'
   ): Promise<{ played: boolean }> => {
-    const response = await apiClient.post<{ success: boolean; data: { played: boolean } }>(
+    const response = await apiClient.post(
       '/jarvis/speak',
       {
         text,
         language,
       }
     );
-    return response.data;
+    const validated = validateResponse(response, SpeakApiResponseSchema, 'jarvis.speak');
+    return extractData(validated);
   },
 };

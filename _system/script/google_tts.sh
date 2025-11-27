@@ -37,7 +37,14 @@ if [ -z "$GCLOUD_PATH" ]; then
 fi
 
 # 執行 Python TTS
-python3 - << PYTHON_SCRIPT
+# SECURITY FIX (VULN-001): Pass variables via environment variables
+# This prevents command injection - Python reads from environment, not shell expansion
+export TTS_TEXT="$TEXT"
+export TTS_VOICE_NAME="$VOICE_NAME"
+export TTS_LANGUAGE_CODE="$LANG_CODE"
+export TTS_GCLOUD_PATH="$GCLOUD_PATH"
+
+python3 - << 'PYTHON_SCRIPT'
 # -*- coding: utf-8 -*-
 import subprocess
 import json
@@ -47,10 +54,11 @@ import os
 import urllib.request
 import urllib.error
 
-TEXT = """${TEXT}"""
-VOICE_NAME = "${VOICE_NAME}"
-LANGUAGE_CODE = "${LANG_CODE}"
-GCLOUD_PATH = "${GCLOUD_PATH}"
+# Read from environment variables (safe - no shell expansion in Python)
+TEXT = os.environ.get('TTS_TEXT', '測試語音')
+VOICE_NAME = os.environ.get('TTS_VOICE_NAME', 'cmn-TW-Standard-B')
+LANGUAGE_CODE = os.environ.get('TTS_LANGUAGE_CODE', 'cmn-TW')
+GCLOUD_PATH = os.environ.get('TTS_GCLOUD_PATH', 'gcloud')
 
 try:
     # 取得 access token

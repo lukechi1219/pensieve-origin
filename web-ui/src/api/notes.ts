@@ -1,5 +1,11 @@
 import { apiClient } from './client';
 import type { Note, ListResponse } from '../types';
+import {
+  NoteListResponseSchema,
+  NoteSchema,
+  CreateNoteResponseSchema,
+  validateResponse,
+} from './schemas';
 
 export interface CreateNoteData {
   title: string;
@@ -32,42 +38,57 @@ export const notesApi = {
     const queryString = query.toString();
     const endpoint = `/notes${queryString ? `?${queryString}` : ''}`;
 
+    const response = await apiClient.get(endpoint);
+    const validated = validateResponse(response, NoteListResponseSchema, 'notes.list');
+
     // Backend returns { count, notes }, transform to { items, total }
-    const response = await apiClient.get<{ count: number; notes: Note[] }>(endpoint);
     return {
-      items: response.notes,
-      total: response.count,
+      items: validated.notes,
+      total: validated.count,
     };
   },
 
   // Get note by ID
   getById: async (id: string): Promise<Note> => {
-    return apiClient.get<Note>(`/notes/${id}`);
+    const response = await apiClient.get(`/notes/${id}`);
+    return validateResponse(response, NoteSchema, 'notes.getById');
   },
 
   // Create new note
   create: async (data: CreateNoteData): Promise<Note> => {
-    const response = await apiClient.post<{ message: string; note: Note }>('/notes', data);
-    return response.note;
+    const response = await apiClient.post('/notes', data);
+    const validated = validateResponse(response, CreateNoteResponseSchema, 'notes.create');
+    return validated.note;
   },
 
   // Update note
   update: async (id: string, data: UpdateNoteData): Promise<Note> => {
-    return apiClient.put<Note>(`/notes/${id}`, data);
+    const response = await apiClient.put(`/notes/${id}`, data);
+    return validateResponse(response, NoteSchema, 'notes.update');
   },
 
   // Delete note
   delete: async (id: string): Promise<{ message: string }> => {
-    return apiClient.delete<{ message: string }>(`/notes/${id}`);
+    const response = await apiClient.delete(`/notes/${id}`);
+    if (!response || typeof response !== 'object' || !('message' in response)) {
+      throw new Error('Invalid delete response format');
+    }
+    return response as { message: string };
   },
 
   // Move note to another folder
   move: async (id: string, folder: string, subPath?: string): Promise<Note> => {
-    return apiClient.post<Note>(`/notes/${id}/move`, { folder, subPath });
+    const response = await apiClient.post(`/notes/${id}/move`, { folder, subPath });
+    return validateResponse(response, NoteSchema, 'notes.move');
   },
 
   // List subfolders in a folder
   listSubfolders: async (folder: string): Promise<{ folder: string; count: number; subfolders: Array<{ name: string; count: number }> }> => {
-    return apiClient.get(`/notes/subfolders?folder=${folder}`);
+    const response = await apiClient.get(`/notes/subfolders?folder=${folder}`);
+    // Simple validation - check structure exists
+    if (!response || typeof response !== 'object' || !('folder' in response)) {
+      throw new Error('Invalid subfolders response format');
+    }
+    return response as { folder: string; count: number; subfolders: Array<{ name: string; count: number }> };
   },
 };

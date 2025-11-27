@@ -1,5 +1,12 @@
 import { apiClient } from './client';
 import type { Journal, JournalStats, ListResponse } from '../types';
+import {
+  JournalListResponseSchema,
+  JournalSchema,
+  JournalStatsSchema,
+  StreakResponseSchema,
+  validateResponse,
+} from './schemas';
 
 export interface UpdateJournalData {
   content?: string;
@@ -24,43 +31,49 @@ export const journalsApi = {
     const queryString = query.toString();
     const endpoint = `/journals${queryString ? `?${queryString}` : ''}`;
 
+    const response = await apiClient.get(endpoint);
+    const validated = validateResponse(response, JournalListResponseSchema, 'journals.list');
+
     // Backend returns { count, journals }, transform to { items, total }
-    const response = await apiClient.get<{ count: number; journals: Journal[] }>(endpoint);
     return {
-      items: response.journals,
-      total: response.count,
+      items: validated.journals,
+      total: validated.count,
     };
   },
 
   // Get today's journal
   getToday: async (): Promise<Journal> => {
-    return apiClient.get<Journal>('/journals/today');
+    const response = await apiClient.get('/journals/today');
+    return validateResponse(response, JournalSchema, 'journals.getToday');
   },
 
   // Get yesterday's journal
   getYesterday: async (): Promise<Journal> => {
-    return apiClient.get<Journal>('/journals/yesterday');
+    const response = await apiClient.get('/journals/yesterday');
+    return validateResponse(response, JournalSchema, 'journals.getYesterday');
   },
 
   // Get journal by specific date
   getByDate: async (date: string): Promise<Journal> => {
-    return apiClient.get<Journal>(`/journals/${date}`);
+    const response = await apiClient.get(`/journals/${date}`);
+    return validateResponse(response, JournalSchema, 'journals.getByDate');
   },
 
   // Update journal entry
   update: async (date: string, data: UpdateJournalData): Promise<Journal> => {
-    return apiClient.put<Journal>(`/journals/${date}`, data);
+    const response = await apiClient.put(`/journals/${date}`, data);
+    return validateResponse(response, JournalSchema, 'journals.update');
   },
 
   // Get journaling streak
   getStreak: async (): Promise<{ current_streak: number; longest_streak: number }> => {
-    return apiClient.get<{ current_streak: number; longest_streak: number }>(
-      '/journals/streak'
-    );
+    const response = await apiClient.get('/journals/streak');
+    return validateResponse(response, StreakResponseSchema, 'journals.getStreak');
   },
 
   // Get journal statistics
   getStats: async (): Promise<JournalStats> => {
-    return apiClient.get<JournalStats>('/journals/stats');
+    const response = await apiClient.get('/journals/stats');
+    return validateResponse(response, JournalStatsSchema, 'journals.getStats');
   },
 };

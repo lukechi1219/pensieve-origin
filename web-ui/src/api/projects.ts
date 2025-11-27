@@ -1,5 +1,10 @@
 import { apiClient } from './client';
 import type { Project, ListResponse } from '../types';
+import {
+  ProjectListResponseSchema,
+  ProjectSchema,
+  validateResponse,
+} from './schemas';
 
 export interface CreateProjectData {
   name: string;
@@ -22,40 +27,46 @@ export interface AddMilestoneData {
 export const projectsApi = {
   // List all projects
   list: async (): Promise<ListResponse<Project>> => {
+    const response = await apiClient.get('/projects');
+    const validated = validateResponse(response, ProjectListResponseSchema, 'projects.list');
+
     // Backend returns { count, projects }, transform to { items, total }
-    const response = await apiClient.get<{ count: number; projects: Project[] }>('/projects');
     return {
-      items: response.projects,
-      total: response.count,
+      items: validated.projects,
+      total: validated.count,
     };
   },
 
   // Get project by name
   getByName: async (name: string): Promise<Project> => {
-    return apiClient.get<Project>(`/projects/${encodeURIComponent(name)}`);
+    const response = await apiClient.get(`/projects/${encodeURIComponent(name)}`);
+    return validateResponse(response, ProjectSchema, 'projects.getByName');
   },
 
   // Create new project
   create: async (data: CreateProjectData): Promise<Project> => {
-    return apiClient.post<Project>('/projects', data);
+    const response = await apiClient.post('/projects', data);
+    return validateResponse(response, ProjectSchema, 'projects.create');
   },
 
   // Update project
   update: async (name: string, data: UpdateProjectData): Promise<Project> => {
-    return apiClient.put<Project>(`/projects/${encodeURIComponent(name)}`, data);
+    const response = await apiClient.put(`/projects/${encodeURIComponent(name)}`, data);
+    return validateResponse(response, ProjectSchema, 'projects.update');
   },
 
   // Update project progress
   updateProgress: async (name: string, progress: number): Promise<Project> => {
-    return apiClient.post<Project>(
+    const response = await apiClient.post(
       `/projects/${encodeURIComponent(name)}/progress`,
       { progress }
     );
+    return validateResponse(response, ProjectSchema, 'projects.updateProgress');
   },
 
   // Add milestone
   addMilestone: async (name: string, milestone: AddMilestoneData): Promise<Project> => {
-    return apiClient.post<Project>(
+    const response = await apiClient.post(
       `/projects/${encodeURIComponent(name)}/milestones`,
       {
         milestoneName: milestone.title,
@@ -63,14 +74,20 @@ export const projectsApi = {
         description: milestone.description
       }
     );
+    return validateResponse(response, ProjectSchema, 'projects.addMilestone');
   },
 
   // Complete milestone
   completeMilestone: async (name: string, milestoneName: string): Promise<{ message: string }> => {
-    return apiClient.post<{ message: string }>(
+    const response = await apiClient.post(
       `/projects/${encodeURIComponent(name)}/milestones/${encodeURIComponent(milestoneName)}/complete`,
       {}
     );
+    // Simple validation for message response
+    if (!response || typeof response !== 'object' || !('message' in response)) {
+      throw new Error('Invalid complete milestone response format');
+    }
+    return response as { message: string };
   },
 
   // Complete project
@@ -78,17 +95,23 @@ export const projectsApi = {
     name: string,
     data: { outcome: string; lessons_learned?: string }
   ): Promise<Project> => {
-    return apiClient.post<Project>(
+    const response = await apiClient.post(
       `/projects/${encodeURIComponent(name)}/complete`,
       data
     );
+    return validateResponse(response, ProjectSchema, 'projects.complete');
   },
 
   // Archive project
   archive: async (name: string): Promise<{ message: string; archive_path: string }> => {
-    return apiClient.post<{ message: string; archive_path: string }>(
+    const response = await apiClient.post(
       `/projects/${encodeURIComponent(name)}/archive`,
       {}
     );
+    // Simple validation for archive response
+    if (!response || typeof response !== 'object' || !('message' in response) || !('archive_path' in response)) {
+      throw new Error('Invalid archive response format');
+    }
+    return response as { message: string; archive_path: string };
   },
 };

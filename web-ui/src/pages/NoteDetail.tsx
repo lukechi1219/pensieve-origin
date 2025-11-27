@@ -6,10 +6,12 @@ import { ArrowLeft, Tag, Calendar, TrendingUp, Save, X, Edit2, Eye, PenLine } fr
 import SummarizeButton from '../components/SummarizeButton';
 import ReactMarkdown from 'react-markdown';
 import MoveNoteModal from '../components/MoveNoteModal';
+import { useI18n } from '../i18n/I18nContext';
 
 export default function NoteDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { t } = useI18n();
   const [note, setNote] = useState<Note | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -63,7 +65,7 @@ export default function NoteDetail() {
       setIsEditing(false);
     } catch (err) {
       console.error('Failed to save note:', err);
-      alert('儲存失敗，請稍後再試');
+      alert(t.notes.saveFailed);
     } finally {
       setIsSaving(false);
     }
@@ -71,14 +73,14 @@ export default function NoteDetail() {
 
   const handleDelete = async () => {
     if (!note || !id) return;
-    if (!window.confirm('確定要刪除這則筆記嗎？此操作無法復原。')) return;
+    if (!window.confirm(t.notes.confirmDelete)) return;
 
     try {
       await notesApi.delete(id);
       navigate('/notes/inbox');
     } catch (err) {
       console.error('Delete failed:', err);
-      alert('刪除失敗');
+      alert(t.notes.deleteFailed);
     }
   };
 
