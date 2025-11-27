@@ -1,6 +1,7 @@
 import path from 'path';
 import { Project, ProjectMetadata } from '../models/Project';
 import { readFile, writeFile, fileExists, listFiles, ensureDir } from '../utils/fileSystem';
+import { sanitizeProjectName, validatePathWithinBase } from '../utils/pathSecurity';
 
 export interface ProjectListItem {
   name: string;
@@ -30,9 +31,13 @@ export class ProjectService {
 
   /**
    * Get project directory path
+   *
+   * SECURITY: Protected against path traversal attacks (VULN-002)
+   * - Sanitizes projectName to reject ../, slashes, and absolute paths
    */
   private static getProjectPath(projectName: string): string {
-    return path.join(this.getProjectsPath(), `project-${projectName}`);
+    const safeName = sanitizeProjectName(projectName);
+    return path.join(this.getProjectsPath(), `project-${safeName}`);
   }
 
   /**
@@ -229,12 +234,17 @@ export class ProjectService {
 
   /**
    * Archive project (move to archive folder)
+   *
+   * SECURITY: Protected against path traversal attacks (VULN-002)
+   * - Sanitizes projectName via getProjectPath()
+   * - Validates archive destination is within vault
    */
   static async archive(
     projectName: string,
     reason: 'completed' | 'cancelled' | 'merged',
     lessonsLearned?: string
   ): Promise<void> {
+    // SECURITY: This will sanitize projectName
     const project = await this.getByName(projectName);
     if (!project) {
       throw new Error(`Project "${projectName}" not found`);
@@ -245,12 +255,16 @@ export class ProjectService {
     await this.update(projectName, project);
 
     // Move project directory to archive
-    const currentPath = this.getProjectPath(projectName);
+    const currentPath = this.getProjectPath(projectName); // Already sanitized
+    const safeName = sanitizeProjectName(projectName); // Sanitize again for archive path
     const archivePath = path.join(
       this.vaultPath,
       '4-archive',
-      `${new Date().toISOString().split('T')[0].slice(0, 7)}-${projectName}`
+      `${new Date().toISOString().split('T')[0].slice(0, 7)}-${safeName}`
     );
+
+    // SECURITY FIX: Validate archive destination is within vault
+    await validatePathWithinBase(archivePath, this.vaultPath);
 
     // Note: This requires a move directory function
     // For now, we'll just update the metadata
