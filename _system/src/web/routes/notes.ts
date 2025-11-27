@@ -98,6 +98,7 @@ router.get('/', async (req: Request, res: Response) => {
         modified: note.frontmatter.modified,
         tags: note.frontmatter.tags,
         paraFolder: note.frontmatter.para_folder,
+        paraPath: note.frontmatter.para_path,
         distillationLevel: note.frontmatter.distillation_level,
         isInspiring: note.frontmatter.is_inspiring,
         isUseful: note.frontmatter.is_useful,

@@ -98,7 +98,11 @@ export default function Notes() {
 
   // Filter notes by selected subfolder
   const filteredNotes = selectedSubfolder
-    ? notes.filter(note => note.paraPath?.includes(`/${selectedSubfolder}`))
+    ? notes.filter(note => {
+        // Match if para_path ends with /subfolder or contains /subfolder/
+        return note.paraPath?.endsWith(`/${selectedSubfolder}`) ||
+               note.paraPath?.includes(`/${selectedSubfolder}/`);
+      })
     : notes;
 
   const handleSubfolderClick = (subfolderName: string) => {

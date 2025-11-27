@@ -226,7 +226,7 @@ ${conversationContext}
           ];
 
           const proc = spawn('claude', args, {
-            cwd: process.cwd(),
+            cwd: path.join(process.cwd(), '..'), // Execute in pensieve-origin directory
             stdio: ['pipe', 'pipe', 'pipe']
           });
 

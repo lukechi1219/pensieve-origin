@@ -9,6 +9,7 @@ const Dashboard = lazy(() => import('./pages/Dashboard'));
 const Notes = lazy(() => import('./pages/Notes'));
 const NoteDetail = lazy(() => import('./pages/NoteDetail'));
 const Journals = lazy(() => import('./pages/Journals'));
+const JournalDetail = lazy(() => import('./pages/JournalDetail'));
 const Projects = lazy(() => import('./pages/Projects'));
 const ProjectDetail = lazy(() => import('./pages/ProjectDetail'));
 const Chats = lazy(() => import('./pages/Chats'));
@@ -31,6 +32,7 @@ function App() {
               <Route path="note/:id" element={<NoteDetail />} />
               <Route path="notes/:folder" element={<Notes />} />
               <Route path="journals" element={<Journals />} />
+              <Route path="journal/:id" element={<JournalDetail />} />
               <Route path="projects" element={<Projects />} />
               <Route path="projects/:name" element={<ProjectDetail />} />
               <Route path="chats" element={<Chats />} />

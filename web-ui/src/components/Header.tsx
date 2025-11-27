@@ -1,8 +1,8 @@
-import { Search, Plus, X, FileText, Loader2 } from 'lucide-react';
+import { Search, Plus, X, FileText, Loader2, BookOpen } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { notesApi } from '../api';
-import type { Note } from '../types';
+import { notesApi, journalsApi } from '../api';
+import type { Note, Journal } from '../types';
 import { useI18n } from '../i18n/I18nContext';
 
 export default function Header() {
@@ -12,7 +12,7 @@ export default function Header() {
   // Search state
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
-  const [searchResults, setSearchResults] = useState<Note[]>([]);
+  const [searchResults, setSearchResults] = useState<{ notes: Note[]; journals: Journal[] }>({ notes: [], journals: [] });
   const [showResults, setShowResults] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
 
@@ -40,21 +40,31 @@ export default function Header() {
         setIsSearching(true);
         setShowResults(true);
         try {
-          // Fetch all notes and filter client-side (temporary solution)
-          const response = await notesApi.list();
           const query = searchQuery.toLowerCase();
-          const filtered = response.items.filter(note => 
-            note.title.toLowerCase().includes(query) || 
+
+          // Fetch and filter notes
+          const notesResponse = await notesApi.list();
+          const filteredNotes = notesResponse.items.filter(note =>
+            note.title.toLowerCase().includes(query) ||
             note.tags.some(tag => tag.toLowerCase().includes(query))
-          ).slice(0, 5); // Limit to 5 results
-          setSearchResults(filtered);
+          ).slice(0, 3); // Limit to 3 notes
+
+          // Fetch and filter journals
+          const journalsResponse = await journalsApi.list();
+          const filteredJournals = journalsResponse.items.filter(journal =>
+            journal.date.includes(query) ||
+            (journal.content && journal.content.toLowerCase().includes(query)) ||
+            (journal.tags && journal.tags.some(tag => tag.toLowerCase().includes(query)))
+          ).slice(0, 2); // Limit to 2 journals
+
+          setSearchResults({ notes: filteredNotes, journals: filteredJournals });
         } catch (error) {
           console.error('Search failed:', error);
         } finally {
           setIsSearching(false);
         }
       } else {
-        setSearchResults([]);
+        setSearchResults({ notes: [], journals: [] });
         setShowResults(false);
       }
     }, 300);
@@ -110,38 +120,83 @@ export default function Header() {
             {/* Search Results Dropdown */}
             {showResults && (
               <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-lg shadow-lg border border-gray-100 max-h-80 overflow-y-auto z-50">
-                {searchResults.length > 0 ? (
+                {searchResults.notes.length > 0 || searchResults.journals.length > 0 ? (
                   <div className="py-2">
-                    {searchResults.map(note => (
-                      <Link
-                        key={note.id}
-                        to={`/note/${note.id}`}
-                        onClick={() => {
-                          setShowResults(false);
-                          setSearchQuery('');
-                        }}
-                        className="block px-4 py-3 hover:bg-gray-50 transition-colors"
-                      >
-                        <div className="flex items-center">
-                          <FileText className="h-4 w-4 text-gray-400 mr-3" />
-                          <div>
-                            <div className="text-sm font-medium text-gray-900">{note.title}</div>
-                            <div className="text-xs text-gray-500 flex gap-2 mt-0.5">
-                              <span>{new Date(note.created).toLocaleDateString(locale === 'zh_Hant' ? 'zh-TW' : 'en-US')}</span>
-                              {note.tags.length > 0 && (
-                                <span className="text-blue-500 truncate max-w-[200px]">
-                                  {note.tags.map(t => `#${t}`).join(' ')}
-                                </span>
-                              )}
-                            </div>
-                          </div>
+                    {/* Notes Section */}
+                    {searchResults.notes.length > 0 && (
+                      <div>
+                        <div className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                          {locale === 'zh_Hant' ? '筆記' : 'Notes'}
                         </div>
-                      </Link>
-                    ))}
+                        {searchResults.notes.map(note => (
+                          <Link
+                            key={note.id}
+                            to={`/note/${note.id}`}
+                            onClick={() => {
+                              setShowResults(false);
+                              setSearchQuery('');
+                            }}
+                            className="block px-4 py-3 hover:bg-gray-50 transition-colors"
+                          >
+                            <div className="flex items-center">
+                              <FileText className="h-4 w-4 text-gray-400 mr-3" />
+                              <div>
+                                <div className="text-sm font-medium text-gray-900">{note.title}</div>
+                                <div className="text-xs text-gray-500 flex gap-2 mt-0.5">
+                                  <span>{new Date(note.created).toLocaleDateString(locale === 'zh_Hant' ? 'zh-TW' : 'en-US')}</span>
+                                  {note.tags.length > 0 && (
+                                    <span className="text-blue-500 truncate max-w-[200px]">
+                                      {note.tags.map(t => `#${t}`).join(' ')}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          </Link>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Journals Section */}
+                    {searchResults.journals.length > 0 && (
+                      <div className={searchResults.notes.length > 0 ? 'mt-2 pt-2 border-t border-gray-100' : ''}>
+                        <div className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                          {locale === 'zh_Hant' ? '日誌' : 'Journals'}
+                        </div>
+                        {searchResults.journals.map(journal => (
+                          <Link
+                            key={journal.id}
+                            to={`/journal/${journal.id}`}
+                            onClick={() => {
+                              setShowResults(false);
+                              setSearchQuery('');
+                            }}
+                            className="block px-4 py-3 hover:bg-gray-50 transition-colors"
+                          >
+                            <div className="flex items-center">
+                              <BookOpen className="h-4 w-4 text-purple-400 mr-3" />
+                              <div>
+                                <div className="text-sm font-medium text-gray-900">
+                                  {journal.title || (locale === 'zh_Hant' ? '日誌條目' : 'Journal Entry')}
+                                </div>
+                                <div className="text-xs text-gray-500 flex gap-2 mt-0.5">
+                                  <span>{new Date(journal.date).toLocaleDateString(locale === 'zh_Hant' ? 'zh-TW' : 'en-US')}</span>
+                                  {journal.tags && journal.tags.length > 0 && (
+                                    <span className="text-purple-500 truncate max-w-[200px]">
+                                      {journal.tags.map(t => `#${t}`).join(' ')}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          </Link>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 ) : (
                   <div className="p-4 text-center text-gray-500 text-sm">
-                    {!isSearching && (locale === 'zh_Hant' ? '找不到相關筆記' : 'No notes found')}
+                    {!isSearching && (locale === 'zh_Hant' ? '找不到相關內容' : 'No results found')}
                   </div>
                 )}
               </div>
