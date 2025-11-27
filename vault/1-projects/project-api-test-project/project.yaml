@@ -1,5 +1,5 @@
 name: api-test-project
-status: active
+status: archived
 created: '2025-11-25'
 deadline: '2026-01-25'
 completion_date: null
@@ -15,10 +15,10 @@ progress:
   milestones:
     - name: Initial MVP
       due_date: '2025-12-15'
-      completed: false
+      completed: true
     - name: API Test Milestone
       due_date: '2025-12-01'
-      completed: false
+      completed: true
 archive:
   archived: false
   archive_date: null

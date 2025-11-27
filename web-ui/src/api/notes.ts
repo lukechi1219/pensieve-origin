@@ -65,4 +65,9 @@ export const notesApi = {
   move: async (id: string, folder: string, subPath?: string): Promise<Note> => {
     return apiClient.post<Note>(`/notes/${id}/move`, { folder, subPath });
   },
+
+  // List subfolders in a folder
+  listSubfolders: async (folder: string): Promise<{ folder: string; count: number; subfolders: Array<{ name: string; count: number }> }> => {
+    return apiClient.get(`/notes/subfolders?folder=${folder}`);
+  },
 };

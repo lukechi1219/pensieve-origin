@@ -9,6 +9,44 @@ const router = Router();
 NoteService.setVaultPath(config.vaultPath);
 
 /**
+ * GET /api/notes/subfolders
+ * List subfolders in a PARA folder with note counts
+ */
+router.get('/subfolders', async (req: Request, res: Response) => {
+  try {
+    const { folder } = req.query;
+
+    if (!folder) {
+      return res.status(400).json({
+        error: 'Missing folder parameter',
+        message: 'folder is required',
+      });
+    }
+
+    const validFolders = ['inbox', 'projects', 'areas', 'resources', 'archive'];
+    if (!validFolders.includes(folder as string)) {
+      return res.status(400).json({
+        error: 'Invalid folder',
+        message: `Folder must be one of: ${validFolders.join(', ')}`,
+      });
+    }
+
+    const subfolders = await NoteService.listSubfolders(folder as any);
+
+    res.json({
+      folder,
+      count: subfolders.length,
+      subfolders,
+    });
+  } catch (error) {
+    res.status(500).json({
+      error: 'Failed to list subfolders',
+      message: error instanceof Error ? error.message : String(error),
+    });
+  }
+});
+
+/**
  * GET /api/notes
  * List all notes or filter by folder/tag/CODE criteria
  */
@@ -127,14 +165,14 @@ router.post('/', async (req: Request, res: Response) => {
   try {
     const { title, content, tags, isInspiring, isUseful, isPersonal, isSurprising } = req.body;
 
-    if (!title || !content) {
+    if (!title || content === undefined) {
       return res.status(400).json({
         error: 'Missing required fields',
-        message: 'title and content are required',
+        message: 'title is required',
       });
     }
 
-    const note = await NoteService.create(title, content, {
+    const note = await NoteService.create(title, content || '', {
       tags: tags || [],
       isInspiring: isInspiring || false,
       isUseful: isUseful || false,

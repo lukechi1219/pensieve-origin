@@ -37,6 +37,7 @@ export interface Journal {
   tags: string[];
   mood?: string;
   energyLevel?: number;
+  sleepQuality?: number;
   habitsCompleted: string[];
   gratitude: string[];
   filePath?: string;

@@ -1,6 +1,6 @@
 # Pensieve Development Progress
 
-**Last Updated**: 2025-11-26
+**Last Updated**: 2025-11-27
 **Current Phase**: Web UI Finalization & JARVIS Integration (Complete) + Bug Fixing & Polish + Onboarding & Performance
 
 ---
@@ -543,6 +543,79 @@ pensieve project progress <name> <percent>         # Update progress
 - [x] Implemented route-based code splitting (`React.lazy` and `Suspense`) for Web UI pages.
 - [x] Implemented "Create Journal" button when no journal entry exists for a selected date.
 
+### 15. YAML Template Migration & Bug Fixes (2025-11-27)
+
+**Template System Refactoring** ✅
+- [x] Converted Markdown templates to YAML format for machine-first design
+  - `vault/templates/journal.yaml` - Structured journal template with schema versioning
+  - `vault/templates/note.yaml` - Note template with CODE standards metadata
+- [x] Created `TemplateService.ts` for YAML template management
+  - Template loading and validation
+  - Variable interpolation (`{{variable}}` syntax)
+  - Markdown generation from YAML structure
+  - Template metadata extraction
+- [x] Updated `Journal.ts` and `Note.ts` models with `fromTemplate()` static methods
+- [x] Updated `JournalService` and `NoteService` to use template system
+- [x] Created template API routes (`routes/templates.ts`)
+  - GET `/api/templates` - List available templates
+  - GET `/api/templates/:name` - Get template metadata
+  - POST `/api/templates/:name/instantiate` - Generate content from template
+
+**Journal Feature Enhancements** ✅
+- [x] Added calendar show/hide toggle button
+- [x] Fixed textarea height to fill available browser space (flexbox layout)
+- [x] Implemented split-view preview mode (edit/preview side-by-side)
+- [x] Added day navigation arrows (previous/next) when calendar is hidden
+- [x] Implemented visual habit tracking in calendar (green dots with tooltips)
+- [x] Added auto-parsing of metadata from Markdown content:
+  - Mood extraction from `**Mood:**` section
+  - Energy level extraction from `**Energy Level:** N/10`
+  - Sleep quality extraction from `**Sleep Quality:** N/10`
+  - Habits completed extraction from `[x]` checkboxes
+- [x] Added `sleep_quality` field support:
+  - Backend model (`JournalFrontmatter`)
+  - Frontend types and display (purple badge)
+  - API routes (PUT `/api/journals/:date`)
+- [x] Fixed regex parsing to support both compact and spaced Markdown formats
+
+**Critical Bug Fixes** ✅
+- [x] **Fixed timezone issue in `listByMonth`** (`JournalService.ts:136`)
+  - Issue: `endDate` set to `00:00:00` excluded last day of month
+  - Fix: Changed to `23:59:59.999` to include full month range
+  - Impact: 11/30 journal now appears in November list
+- [x] **Fixed journal creation UI flash** (`Journals.tsx:171`)
+  - Issue: Journal appeared briefly then disappeared after creation
+  - Fix: Immediately update local state with returned journal object
+  - Impact: Smooth journal creation without flashing
+- [x] **Fixed calendar month switching** (`Calendar.tsx:28`)
+  - Issue: Calendar internal state not syncing with external date changes
+  - Fix: Added `useEffect` to sync `viewDate` with `currentDate` prop
+  - Impact: Calendar updates correctly when using navigation arrows
+- [x] **Fixed calendar switching during load** (`Journals.tsx:289`)
+  - Issue: Calendar component unmounted during loading, losing state
+  - Fix: Use overlay loading indicator instead of conditional rendering
+  - Impact: Month switching works smoothly without component remount
+- [x] **Fixed loading state race condition** (`Journals.tsx:47`)
+  - Issue: `selectedJournal` cleared during month data loading
+  - Fix: Only update `selectedJournal` when not loading
+  - Impact: No UI flickering during month transitions
+
+**UI Layout Adjustments** ✅
+- [x] Adjusted project detail page layout (`ProjectDetail.tsx:243`)
+  - Changed from 3-column grid (2:1 ratio) to 2-column grid (1:1 ratio)
+  - Milestones and notes sections now equal width (50% each)
+
+**Backend Improvements** ✅
+- [x] Template-based journal creation with proper date variable interpolation
+- [x] Support for both `YYYY-MM-DD` date format and Date objects in API
+- [x] Improved error handling for template instantiation
+
+**Testing & Validation** ✅
+- [x] Verified 11/30 journal creation and display
+- [x] Tested calendar month navigation (no flashing)
+- [x] Verified habit visualization on calendar
+- [x] Tested auto-parsing of mood, energy, sleep quality, and habits
+- [x] Confirmed sleep quality badge display in read mode
 ### 15. TypeScript Build Error Resolution (2025-11-26)
 
 **Issue**: Web UI build failed with multiple TypeScript compilation errors.

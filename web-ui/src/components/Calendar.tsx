@@ -1,15 +1,15 @@
-import { useState } from 'react';
-import { 
-  format, 
-  startOfMonth, 
-  endOfMonth, 
-  startOfWeek, 
-  endOfWeek, 
-  eachDayOfInterval, 
-  isSameMonth, 
-  isSameDay, 
-  addMonths, 
-  subMonths 
+import { useState, useEffect } from 'react';
+import {
+  format,
+  startOfMonth,
+  endOfMonth,
+  startOfWeek,
+  endOfWeek,
+  eachDayOfInterval,
+  isSameMonth,
+  isSameDay,
+  addMonths,
+  subMonths
 } from 'date-fns';
 import { zhTW } from 'date-fns/locale';
 import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, CheckCircle2 } from 'lucide-react';
@@ -24,6 +24,11 @@ interface CalendarProps {
 
 export default function Calendar({ journals, currentDate, onDateSelect, onMonthChange }: CalendarProps) {
   const [viewDate, setViewDate] = useState(currentDate);
+
+  // Sync viewDate with external currentDate changes
+  useEffect(() => {
+    setViewDate(currentDate);
+  }, [currentDate]);
 
   const monthStart = startOfMonth(viewDate);
   const monthEnd = endOfMonth(monthStart);
@@ -126,16 +131,29 @@ export default function Calendar({ journals, currentDate, onDateSelect, onMonthC
                   {journal.energyLevel && (
                     <div className="flex items-center gap-1">
                       <div className="h-1.5 w-full bg-gray-200 rounded-full overflow-hidden">
-                        <div 
-                          className="h-full bg-blue-400" 
+                        <div
+                          className="h-full bg-blue-400"
                           style={{ width: `${(journal.energyLevel / 10) * 100}%` }}
                         />
                       </div>
                     </div>
                   )}
                   {journal.habitsCompleted && journal.habitsCompleted.length > 0 && (
-                    <div className="text-[10px] text-gray-400">
-                      {journal.habitsCompleted.length} 個習慣
+                    <div className="flex items-center gap-1 mt-1">
+                      <div className="flex gap-0.5 flex-wrap">
+                        {journal.habitsCompleted.slice(0, 6).map((habit, i) => (
+                          <div
+                            key={i}
+                            className="h-1.5 w-1.5 bg-green-500 rounded-full"
+                            title={habit}
+                          />
+                        ))}
+                        {journal.habitsCompleted.length > 6 && (
+                          <span className="text-[9px] text-gray-400 ml-0.5">
+                            +{journal.habitsCompleted.length - 6}
+                          </span>
+                        )}
+                      </div>
                     </div>
                   )}
                 </div>

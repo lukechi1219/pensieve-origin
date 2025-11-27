@@ -8,6 +8,7 @@ import {
   listFiles,
   moveFile,
   deleteFile,
+  listDirectories,
 } from '../utils/fileSystem';
 import { generateTimestampId, formatDateTime } from '../utils/dateUtils';
 import { TemplateService } from './TemplateService';
@@ -216,6 +217,37 @@ export class NoteService {
   }
 
   /**
+   * List subfolders in a PARA folder with note counts
+   */
+  static async listSubfolders(
+    paraFolder: NoteFrontmatter['para_folder']
+  ): Promise<Array<{ name: string; count: number }>> {
+    const folderMap: Record<string, string> = {
+      inbox: '0-inbox',
+      projects: '1-projects',
+      areas: '2-areas',
+      resources: '3-resources',
+      archive: '4-archive',
+    };
+
+    const folderPath = path.join(this.vaultPath, folderMap[paraFolder]);
+    const subdirs = await listDirectories(folderPath);
+
+    const notes = await this.getAllNotes();
+    const result = subdirs.map(subdir => {
+      // Count notes in this subfolder
+      const count = notes.filter(n => {
+        return n.frontmatter.para_folder === paraFolder &&
+               n.frontmatter.para_path?.includes(`/${subdir}`);
+      }).length;
+
+      return { name: subdir, count };
+    });
+
+    return result;
+  }
+
+  /**
    * Search notes by tag
    */
   static async findByTag(tag: string): Promise<Note[]> {
@@ -298,6 +330,13 @@ export class NoteService {
 
     // Safe to move - destination is validated
     await moveFile(note.filePath, newFilePath);
+
+    // Write updated frontmatter to new location
+    const fileContent = serializeFrontmatter(note.frontmatter, note.content);
+    await writeFile(newFilePath, fileContent);
+
+    // Delete old file
+    await deleteFile(note.filePath);
 
     note.filePath = newFilePath;
     this.invalidateCache();

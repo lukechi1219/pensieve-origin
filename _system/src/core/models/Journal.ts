@@ -8,6 +8,7 @@ export interface JournalFrontmatter {
   tags: string[];
   mood?: string;
   energy_level?: number; // 0-10
+  sleep_quality?: number; // 0-10
   habits_completed?: string[];
   gratitude?: string[];
 }

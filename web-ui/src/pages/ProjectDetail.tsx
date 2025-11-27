@@ -240,10 +240,10 @@ export default function ProjectDetail() {
       </div>
 
       {/* Content Grid - Scrollable Area */}
-      <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-3 gap-6">
-        
+      <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-2 gap-6">
+
         {/* Milestones Column */}
-        <div className="lg:col-span-2 bg-white rounded-lg shadow flex flex-col min-h-0">
+        <div className="lg:col-span-1 bg-white rounded-lg shadow flex flex-col min-h-0">
           {/* Sticky Header */}
           <div className="p-6 border-b border-gray-100 flex-shrink-0 bg-white rounded-t-lg z-10">
             <div className="flex flex-wrap items-center justify-between gap-4">

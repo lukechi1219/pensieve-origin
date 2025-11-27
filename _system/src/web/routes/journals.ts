@@ -53,6 +53,7 @@ router.get('/', async (req: Request, res: Response) => {
         date: journal.frontmatter.date,
         mood: journal.frontmatter.mood,
         energyLevel: journal.frontmatter.energy_level,
+        sleepQuality: journal.frontmatter.sleep_quality,
         habitsCompleted: journal.frontmatter.habits_completed,
         tags: journal.frontmatter.tags,
         content: journal.content,
@@ -81,6 +82,7 @@ router.get('/today', async (req: Request, res: Response) => {
       content: journal.content,
       mood: journal.frontmatter.mood,
       energyLevel: journal.frontmatter.energy_level,
+      sleepQuality: journal.frontmatter.sleep_quality,
       habitsCompleted: journal.frontmatter.habits_completed,
       gratitude: journal.frontmatter.gratitude,
       tags: journal.frontmatter.tags,
@@ -116,6 +118,7 @@ router.get('/yesterday', async (req: Request, res: Response) => {
       content: journal.content,
       mood: journal.frontmatter.mood,
       energyLevel: journal.frontmatter.energy_level,
+      sleepQuality: journal.frontmatter.sleep_quality,
       habitsCompleted: journal.frontmatter.habits_completed,
       gratitude: journal.frontmatter.gratitude,
       tags: journal.frontmatter.tags,
@@ -197,6 +200,7 @@ router.get('/:date', async (req: Request, res: Response) => {
       content: journal.content,
       mood: journal.frontmatter.mood,
       energyLevel: journal.frontmatter.energy_level,
+      sleepQuality: journal.frontmatter.sleep_quality,
       habitsCompleted: journal.frontmatter.habits_completed,
       gratitude: journal.frontmatter.gratitude,
       tags: journal.frontmatter.tags,
@@ -217,7 +221,7 @@ router.get('/:date', async (req: Request, res: Response) => {
 router.put('/:date', async (req: Request, res: Response) => {
   try {
     const { date } = req.params;
-    const { content, mood, energyLevel, habitsCompleted, gratitude } = req.body;
+    const { content, mood, energyLevel, sleepQuality, habitsCompleted, gratitude } = req.body;
 
     const journalDate = new Date(date);
     if (isNaN(journalDate.getTime())) {
@@ -236,13 +240,22 @@ router.put('/:date', async (req: Request, res: Response) => {
       journal.setMood(mood);
     }
     if (energyLevel !== undefined) {
-      if (energyLevel < 1 || energyLevel > 10) {
+      if (energyLevel < 0 || energyLevel > 10) {
         return res.status(400).json({
           error: 'Invalid energy level',
-          message: 'Energy level must be between 1 and 10',
+          message: 'Energy level must be between 0 and 10',
         });
       }
       journal.setEnergyLevel(energyLevel);
+    }
+    if (sleepQuality !== undefined) {
+      if (sleepQuality < 0 || sleepQuality > 10) {
+        return res.status(400).json({
+          error: 'Invalid sleep quality',
+          message: 'Sleep quality must be between 0 and 10',
+        });
+      }
+      journal.frontmatter.sleep_quality = sleepQuality;
     }
     if (habitsCompleted !== undefined) {
       journal.frontmatter.habits_completed = habitsCompleted;

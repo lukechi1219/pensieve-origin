@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { journalsApi } from '../api';
 import type { Journal, JournalStats } from '../types';
-import { Calendar as CalendarIcon, TrendingUp, Edit2, Save, X, Loader2 } from 'lucide-react';
+import { Calendar as CalendarIcon, TrendingUp, Edit2, Save, X, Loader2, Eye, EyeOff, FileText, SplitSquareHorizontal, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useI18n } from '../i18n/I18nContext';
 import Calendar from '../components/Calendar';
 import { format, isSameDay } from 'date-fns';
@@ -25,6 +25,12 @@ export default function Journals() {
   const [editContent, setEditContent] = useState('');
   const [isSaving, setIsSaving] = useState(false);
 
+  // Calendar visibility toggle
+  const [showCalendar, setShowCalendar] = useState(true);
+
+  // Preview toggle
+  const [showPreview, setShowPreview] = useState(false);
+
   // Load stats on mount
   useEffect(() => {
     loadJournalStats();
@@ -37,10 +43,13 @@ export default function Journals() {
 
   // Update selected journal when journals list or selected date changes
   useEffect(() => {
-    const journal = journals.find(j => isSameDay(new Date(j.date), selectedDate));
-    setSelectedJournal(journal || null);
-    setIsEditing(false);
-  }, [journals, selectedDate]);
+    // Only update if not currently loading (prevents flashing during month change)
+    if (!loadingMonth) {
+      const journal = journals.find(j => isSameDay(new Date(j.date), selectedDate));
+      setSelectedJournal(journal || null);
+      setIsEditing(false);
+    }
+  }, [journals, selectedDate, loadingMonth]);
 
   const loadJournalStats = async () => {
     try {
@@ -78,16 +87,74 @@ export default function Journals() {
     setEditContent('');
   };
 
+  const parseCompletedHabits = (content: string): string[] => {
+    // Extract completed habits from Markdown checkboxes
+    const habitMatches = content.match(/- \[x\] (.+)/gi);
+    if (!habitMatches) return [];
+
+    return habitMatches.map(match => {
+      const habitName = match.replace(/- \[x\] /i, '').trim();
+      return habitName;
+    });
+  };
+
+  const parseMoodAndEnergy = (content: string) => {
+    // Parse mood - support both single line and multiple lines
+    // Matches: **Mood:** followed by text (with or without blank lines)
+    const moodMatch = content.match(/\*\*Mood[:\s]*\*\*[:\s]*\n+\s*([^\n]+)/i);
+    const mood = moodMatch ? moodMatch[1].trim() : '';
+
+    // Parse energy level - support both formats
+    // Matches: **Energy Level:** followed by N/10 (with or without blank lines)
+    const energyMatch = content.match(/\*\*Energy Level[:\s]*\*\*[:\s]*\n+\s*(\d+)\s*\/\s*10/i);
+    const energyLevel = energyMatch ? parseInt(energyMatch[1], 10) : 0;
+
+    // Parse sleep quality - support both formats
+    // Matches: **Sleep Quality:** followed by N/10 (with or without blank lines)
+    const sleepMatch = content.match(/\*\*Sleep Quality[:\s]*\*\*[:\s]*\n+\s*(\d+)\s*\/\s*10/i);
+    const sleepQuality = sleepMatch ? parseInt(sleepMatch[1], 10) : undefined;
+
+    return { mood, energyLevel, sleepQuality };
+  };
+
   const handleSave = async () => {
     if (!selectedJournal) return;
 
     setIsSaving(true);
     try {
       const dateStr = format(selectedDate, 'yyyy-MM-dd');
-      await journalsApi.update(dateStr, { content: editContent });
+
+      // Parse completed habits from content
+      const habitsCompleted = parseCompletedHabits(editContent);
+
+      // Parse mood and energy levels
+      const { mood, energyLevel, sleepQuality } = parseMoodAndEnergy(editContent);
+
+      // Build update payload
+      const updatePayload: any = {
+        content: editContent,
+        habitsCompleted,
+        mood,
+        energyLevel
+      };
+
+      // Only include sleepQuality if it exists
+      if (sleepQuality !== undefined) {
+        updatePayload.sleepQuality = sleepQuality;
+      }
+
+      // Update with parsed data
+      await journalsApi.update(dateStr, updatePayload);
 
       // Update local state immediately
-      const updatedJournal = { ...selectedJournal, content: editContent };
+      const updatedJournal = {
+        ...selectedJournal,
+        content: editContent,
+        habitsCompleted,
+        mood,
+        energyLevel,
+        ...(sleepQuality !== undefined && { sleepQuality })
+      };
       setSelectedJournal(updatedJournal);
 
       // Update in list as well
@@ -103,17 +170,56 @@ export default function Journals() {
       setIsSaving(false);
     }
   };
-  
+
   const handleCreateJournal = async () => {
     try {
       const dateStr = format(selectedDate, 'yyyy-MM-dd');
-      await journalsApi.getByDate(dateStr); // Backend creates if not exists
-      await loadJournalsByMonth(currentMonth); // Reload month to show new journal
-      loadJournalStats(); // Update stats
-      // alert(`已建立 ${dateStr} 的日記`); // Optional feedback
+
+      // Get/create the journal
+      const newJournal = await journalsApi.getByDate(dateStr);
+
+      // Update the local state immediately
+      setSelectedJournal(newJournal);
+
+      // Add to journals list if not already present
+      setJournals(prev => {
+        const exists = prev.some(j => j.id === newJournal.id);
+        if (exists) {
+          return prev.map(j => j.id === newJournal.id ? newJournal : j);
+        }
+        return [...prev, newJournal];
+      });
+
+      // Reload in background to ensure consistency
+      loadJournalsByMonth(currentMonth);
+      loadJournalStats();
     } catch (error) {
       console.error('Failed to create journal:', error);
       alert('建立日記失敗');
+    }
+  };
+
+  const handlePreviousDay = () => {
+    const previousDay = new Date(selectedDate);
+    previousDay.setDate(previousDay.getDate() - 1);
+    setSelectedDate(previousDay);
+
+    // Load month if different
+    if (previousDay.getMonth() !== currentMonth.getMonth() ||
+        previousDay.getFullYear() !== currentMonth.getFullYear()) {
+      setCurrentMonth(previousDay);
+    }
+  };
+
+  const handleNextDay = () => {
+    const nextDay = new Date(selectedDate);
+    nextDay.setDate(nextDay.getDate() + 1);
+    setSelectedDate(nextDay);
+
+    // Load month if different
+    if (nextDay.getMonth() !== currentMonth.getMonth() ||
+        nextDay.getFullYear() !== currentMonth.getFullYear()) {
+      setCurrentMonth(nextDay);
     }
   };
 
@@ -127,9 +233,28 @@ export default function Journals() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900">{t.journal.title}</h1>
-        <p className="mt-2 text-gray-600">{t.journal.subtitle}</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">{t.journal.title}</h1>
+          <p className="mt-2 text-gray-600">{t.journal.subtitle}</p>
+        </div>
+        <button
+          onClick={() => setShowCalendar(!showCalendar)}
+          className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors shadow-sm"
+          title={showCalendar ? '隱藏日曆' : '顯示日曆'}
+        >
+          {showCalendar ? (
+            <>
+              <EyeOff className="h-4 w-4" />
+              隱藏日曆
+            </>
+          ) : (
+            <>
+              <Eye className="h-4 w-4" />
+              顯示日曆
+            </>
+          )}
+        </button>
       </div>
 
       {/* Stats Grid */}
@@ -151,30 +276,51 @@ export default function Journals() {
         />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className={`grid grid-cols-1 ${showCalendar ? 'lg:grid-cols-3' : ''} gap-6`}>
         {/* Calendar Section */}
-        <div className="lg:col-span-2">
-          {loadingMonth ? (
-             <div className="bg-white rounded-lg shadow p-12 flex justify-center items-center h-[400px]">
-               <Loader2 className="h-8 w-8 text-blue-500 animate-spin" />
-             </div>
-          ) : (
+        {showCalendar && (
+          <div className="lg:col-span-2 relative">
             <Calendar
               journals={journals}
               currentDate={selectedDate}
               onDateSelect={setSelectedDate}
               onMonthChange={setCurrentMonth}
             />
-          )}
-        </div>
+            {loadingMonth && (
+              <div className="absolute inset-0 bg-white/80 backdrop-blur-sm rounded-lg flex justify-center items-center">
+                <Loader2 className="h-8 w-8 text-blue-500 animate-spin" />
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Journal Entry Detail */}
-        <div className="lg:col-span-1">
-          <div className="bg-white rounded-lg shadow h-full flex flex-col">
-            <div className="p-4 border-b border-gray-200 flex justify-between items-center bg-gray-50 rounded-t-lg">
-              <h3 className="font-semibold text-gray-900">
-                {format(selectedDate, 'yyyy年 MMMM d日 EEEE', { locale: zhTW })}
-              </h3>
+        <div className={showCalendar ? 'lg:col-span-1' : ''}>
+          <div className="bg-white rounded-lg shadow flex flex-col" style={{ height: 'calc(100vh - 24rem)' }}>
+            <div className="p-4 border-b border-gray-200 flex justify-between items-center bg-gray-50 rounded-t-lg flex-shrink-0">
+              <div className="flex items-center gap-2">
+                {!showCalendar && (
+                  <button
+                    onClick={handlePreviousDay}
+                    className="p-1.5 text-gray-600 hover:text-blue-600 hover:bg-white rounded-full transition-colors"
+                    title="前一天"
+                  >
+                    <ChevronLeft className="h-5 w-5" />
+                  </button>
+                )}
+                <h3 className="font-semibold text-gray-900">
+                  {format(selectedDate, 'yyyy年 MMMM d日 EEEE', { locale: zhTW })}
+                </h3>
+                {!showCalendar && (
+                  <button
+                    onClick={handleNextDay}
+                    className="p-1.5 text-gray-600 hover:text-blue-600 hover:bg-white rounded-full transition-colors"
+                    title="後一天"
+                  >
+                    <ChevronRight className="h-5 w-5" />
+                  </button>
+                )}
+              </div>
               {selectedJournal && !isEditing && (
                 <button
                   onClick={handleEdit}
@@ -186,17 +332,59 @@ export default function Journals() {
               )}
             </div>
 
-            <div className="p-6 flex-1 overflow-y-auto max-h-[600px]">
+            <div className="p-6 flex-1 overflow-hidden flex flex-col">
               {selectedJournal ? (
                 isEditing ? (
                   <div className="h-full flex flex-col gap-4">
-                    <textarea
-                      value={editContent}
-                      onChange={(e) => setEditContent(e.target.value)}
-                      className="flex-1 w-full p-3 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none font-mono text-sm"
-                      placeholder="寫下今天的想法..."
-                    />
-                    <div className="flex gap-2 justify-end">
+                    {/* Preview Toggle Buttons */}
+                    <div className="flex gap-2 flex-shrink-0">
+                      <button
+                        onClick={() => setShowPreview(false)}
+                        className={`flex items-center gap-2 px-3 py-1.5 text-sm rounded-lg transition-colors ${
+                          !showPreview
+                            ? 'bg-blue-100 text-blue-700 font-medium'
+                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                        }`}
+                      >
+                        <FileText className="h-4 w-4" />
+                        編輯
+                      </button>
+                      <button
+                        onClick={() => setShowPreview(true)}
+                        className={`flex items-center gap-2 px-3 py-1.5 text-sm rounded-lg transition-colors ${
+                          showPreview
+                            ? 'bg-blue-100 text-blue-700 font-medium'
+                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                        }`}
+                      >
+                        <SplitSquareHorizontal className="h-4 w-4" />
+                        預覽
+                      </button>
+                    </div>
+
+                    {/* Editor/Preview Area */}
+                    <div className="flex-1 overflow-hidden flex gap-4">
+                      {/* Markdown Editor */}
+                      <div className={`${showPreview ? 'w-1/2' : 'w-full'} h-full flex flex-col`}>
+                        <textarea
+                          value={editContent}
+                          onChange={(e) => setEditContent(e.target.value)}
+                          className="flex-1 w-full p-3 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none font-mono text-sm overflow-y-auto"
+                          placeholder="寫下今天的想法..."
+                        />
+                      </div>
+
+                      {/* Preview Panel */}
+                      {showPreview && (
+                        <div className="w-1/2 h-full overflow-y-auto border border-gray-300 rounded-lg p-4 bg-gray-50">
+                          <div className="prose prose-sm max-w-none">
+                            <ReactMarkdown>{editContent || '*預覽區域*'}</ReactMarkdown>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="flex gap-2 justify-end flex-shrink-0">
                       <button
                         onClick={handleCancel}
                         disabled={isSaving}
@@ -216,7 +404,7 @@ export default function Journals() {
                     </div>
                   </div>
                 ) : (
-                  <div className="space-y-4">
+                  <div className="space-y-4 overflow-y-auto h-full">
                     {/* Metadata */}
                     <div className="flex flex-wrap gap-2">
                       {selectedJournal.mood && (
@@ -224,9 +412,14 @@ export default function Journals() {
                           心情: {selectedJournal.mood}
                         </span>
                       )}
-                      {selectedJournal.energyLevel && (
+                      {selectedJournal.energyLevel !== undefined && selectedJournal.energyLevel > 0 && (
                         <span className="px-2 py-1 bg-yellow-50 text-yellow-700 text-xs rounded-full">
                           能量: {selectedJournal.energyLevel}/10
+                        </span>
+                      )}
+                      {selectedJournal.sleepQuality !== undefined && selectedJournal.sleepQuality > 0 && (
+                        <span className="px-2 py-1 bg-purple-50 text-purple-700 text-xs rounded-full">
+                          睡眠: {selectedJournal.sleepQuality}/10
                         </span>
                       )}
                     </div>

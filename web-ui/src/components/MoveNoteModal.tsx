@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
-import { X, Folder } from 'lucide-react';
-import { projectsApi } from '../api';
+import React, { useState, useEffect } from 'react';
+import { X, Folder, ChevronRight } from 'lucide-react';
+import { projectsApi, notesApi } from '../api';
 import type { Project } from '../types';
 
 interface MoveNoteModalProps {
@@ -15,6 +15,9 @@ const MoveNoteModal: React.FC<MoveNoteModalProps> = ({ isOpen, onClose, currentF
   const [projects, setProjects] = useState<Project[]>([]);
   const [selectedProject, setSelectedProject] = useState<string>('');
   const [loadingProjects, setLoadingProjects] = useState(false);
+  const [subfolders, setSubfolders] = useState<Array<{ name: string; count: number }>>([]);
+  const [selectedSubfolder, setSelectedSubfolder] = useState<string>('');
+  const [loadingSubfolders, setLoadingSubfolders] = useState(false);
 
   const folders = [
     { value: 'inbox', label: '收件匣 (Inbox)' },
@@ -32,6 +35,18 @@ const MoveNoteModal: React.FC<MoveNoteModalProps> = ({ isOpen, onClose, currentF
         .catch(console.error)
         .finally(() => setLoadingProjects(false));
     }
+
+    // Load subfolders for areas and resources
+    if (selectedFolder === 'areas' || selectedFolder === 'resources') {
+      setLoadingSubfolders(true);
+      notesApi.listSubfolders(selectedFolder)
+        .then(res => setSubfolders(res.subfolders))
+        .catch(console.error)
+        .finally(() => setLoadingSubfolders(false));
+    } else {
+      setSubfolders([]);
+      setSelectedSubfolder('');
+    }
   }, [selectedFolder]);
 
   const handleMove = () => {
@@ -39,6 +54,9 @@ const MoveNoteModal: React.FC<MoveNoteModalProps> = ({ isOpen, onClose, currentF
       // Format: project-name/notes
       const subPath = `project-${selectedProject}/notes`;
       onMove(selectedFolder, subPath);
+    } else if ((selectedFolder === 'areas' || selectedFolder === 'resources') && selectedSubfolder) {
+      // Format: subfolder-name
+      onMove(selectedFolder, selectedSubfolder);
     } else {
       onMove(selectedFolder);
     }
@@ -105,6 +123,31 @@ const MoveNoteModal: React.FC<MoveNoteModalProps> = ({ isOpen, onClose, currentF
                     )}
                   </div>
                 )}
+
+                {/* Sub-selection for Areas and Resources */}
+                {(folder.value === 'areas' || folder.value === 'resources') &&
+                 selectedFolder === folder.value && (
+                  <div className="ml-8 pl-4 border-l-2 border-gray-100 animate-in slide-in-from-top-2">
+                    {loadingSubfolders ? (
+                      <p className="text-sm text-gray-500 py-2">載入子資料夾中...</p>
+                    ) : subfolders.length > 0 ? (
+                      <select
+                        value={selectedSubfolder}
+                        onChange={(e) => setSelectedSubfolder(e.target.value)}
+                        className="w-full p-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+                      >
+                        <option value="">根目錄（不選擇子資料夾）</option>
+                        {subfolders.map(subfolder => (
+                          <option key={subfolder.name} value={subfolder.name}>
+                            {subfolder.name} ({subfolder.count} 筆記)
+                          </option>
+                        ))}
+                      </select>
+                    ) : (
+                      <p className="text-sm text-gray-500 py-2">沒有子資料夾</p>
+                    )}
+                  </div>
+                )}
               </div>
             ))}
           </div>
@@ -120,7 +163,9 @@ const MoveNoteModal: React.FC<MoveNoteModalProps> = ({ isOpen, onClose, currentF
           <button
             onClick={handleMove}
             disabled={
-              (selectedFolder === currentFolder && !selectedProject) || 
+              // Can't move if folder is the same and no subfolder/project is selected
+              (selectedFolder === currentFolder && !selectedProject && !selectedSubfolder) ||
+              // Projects must have a project selected
               (selectedFolder === 'projects' && !selectedProject)
             }
             className="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"

@@ -133,7 +133,7 @@ export class JournalService {
    */
   static async listByMonth(year: number, month: number): Promise<Journal[]> {
     const startDate = new Date(year, month - 1, 1);
-    const endDate = new Date(year, month, 0); // Last day of month
+    const endDate = new Date(year, month, 0, 23, 59, 59, 999); // Last day of month at 23:59:59.999
     return await this.listByRange(startDate, endDate);
   }
 

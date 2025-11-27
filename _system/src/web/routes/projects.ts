@@ -124,7 +124,7 @@ router.post('/', async (req: Request, res: Response) => {
 router.put('/:name', async (req: Request, res: Response) => {
   try {
     const { name } = req.params;
-    const { description, goal, successCriteria, relatedAreas, tags, notes } = req.body;
+    const { status, description, goal, successCriteria, relatedAreas, tags, notes } = req.body;
 
     const project = await ProjectService.getByName(name);
     if (!project) {
@@ -134,6 +134,7 @@ router.put('/:name', async (req: Request, res: Response) => {
       });
     }
 
+    if (status !== undefined) project.metadata.status = status;
     if (description !== undefined) project.metadata.description = description;
     if (goal !== undefined) project.metadata.goal = goal;
     if (successCriteria !== undefined) project.metadata.success_criteria = successCriteria;

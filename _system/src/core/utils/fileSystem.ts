@@ -93,3 +93,13 @@ export async function moveFile(source: string, destination: string): Promise<voi
 export async function deleteFile(filePath: string): Promise<void> {
   await fs.unlink(filePath);
 }
+
+/**
+ * List subdirectories in a directory
+ */
+export async function listDirectories(dirPath: string): Promise<string[]> {
+  const entries = await fs.readdir(dirPath, { withFileTypes: true });
+  return entries
+    .filter(entry => entry.isDirectory())
+    .map(entry => entry.name);
+}
