@@ -1,11 +1,15 @@
-import { Search, Plus, X, FileText, Loader2, BookOpen } from 'lucide-react';
+import { Search, Plus, X, FileText, Loader2, BookOpen, Menu } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { notesApi, journalsApi } from '../api';
 import type { Note, Journal } from '../types';
 import { useI18n } from '../i18n/I18nContext';
 
-export default function Header() {
+interface HeaderProps {
+  onMenuClick: () => void;
+}
+
+export default function Header({ onMenuClick }: HeaderProps) {
   const { locale } = useI18n();
   const navigate = useNavigate();
   
@@ -98,10 +102,19 @@ export default function Header() {
 
   return (
     <>
-      <header className="bg-white border-b border-gray-200 px-6 py-4 z-20 relative">
+      <header className="bg-white border-b border-gray-200 px-4 md:px-6 py-4 z-20 relative">
         <div className="flex items-center justify-between">
+          {/* Hamburger menu - only visible on mobile */}
+          <button
+            onClick={onMenuClick}
+            className="md:hidden p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+            aria-label="Toggle menu"
+          >
+            <Menu className="h-6 w-6" />
+          </button>
+
           {/* Search bar */}
-          <div className="flex-1 max-w-2xl" ref={searchRef}>
+          <div className="flex-1 max-w-2xl mx-4 md:mx-0" ref={searchRef}>
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
               <input
@@ -204,13 +217,21 @@ export default function Header() {
           </div>
 
           {/* Actions */}
-          <div className="flex items-center space-x-4 ml-4">
+          <div className="flex items-center space-x-2 md:space-x-4">
             <button
               onClick={() => setShowCaptureModal(true)}
-              className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-sm"
+              className="hidden sm:flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-sm"
             >
               <Plus className="h-5 w-5 mr-2" />
               {locale === 'zh_Hant' ? '快速捕捉' : 'Quick Capture'}
+            </button>
+            {/* Mobile quick capture button - just icon */}
+            <button
+              onClick={() => setShowCaptureModal(true)}
+              className="sm:hidden p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+              aria-label="Quick capture"
+            >
+              <Plus className="h-5 w-5" />
             </button>
           </div>
         </div>
