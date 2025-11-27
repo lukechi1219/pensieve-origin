@@ -1,12 +1,9 @@
-import { exec } from 'child_process';
-import { promisify } from 'util';
+import { spawn } from 'child_process';
 import fs from 'fs/promises';
 import path from 'path';
 import os from 'os';
 import { Note } from '../models/Note';
 import { NoteService } from './NoteService';
-
-const execAsync = promisify(exec);
 
 /**
  * JarvisService: Integration with JARVIS agent for Progressive Summarization
@@ -49,7 +46,7 @@ ${content}`;
   }
 
   /**
-   * Execute Claude Code CLI with JARVIS agent
+   * Execute Claude Code CLI with JARVIS agent (SECURE: uses spawn with array arguments)
    */
   private static async executeClaude(
     promptFile: string,
@@ -63,29 +60,75 @@ ${content}`;
     this.activeCalls++;
 
     try {
-      // Use Haiku 4.5 for fast, cost-effective summarization
-      // Use --allowedTools to grant only necessary permissions:
-      // - Bash for google_tts.sh (TTS playback)
-      // - Read for accessing note content (already in prompt)
-      // - Other tools can be added as needed
-      const { stdout, stderr } = await execAsync(
-        `claude --print --model haiku --allowedTools "Bash(_system/script/google_tts.sh:*)" < "${promptFile}"`,
-        { timeout: this.TIMEOUT, cwd: process.cwd() }
-      );
+      // SECURITY FIX: Use spawn() with argument array instead of template string
+      // This prevents command injection as arguments are passed directly without shell interpretation
+      const args = [
+        '--print',
+        '--model', 'haiku',
+        '--allowedTools', 'Bash(_system/script/google_tts.sh:*)'
+      ];
 
-      // Log for debugging
-      if (stderr) {
-        console.error('Claude CLI stderr:', stderr);
-      }
-      if (!stdout || stdout.trim().length === 0) {
-        throw new Error(`Claude CLI returned empty output. stderr: ${stderr || 'none'}`);
-      }
+      return await new Promise<string>((resolve, reject) => {
+        const proc = spawn('claude', args, {
+          cwd: process.cwd(),
+          stdio: ['pipe', 'pipe', 'pipe']
+        });
 
-      if (stderr && stderr.includes('error')) {
-        throw new Error(`Claude CLI error: ${stderr}`);
-      }
+        let stdout = '';
+        let stderr = '';
 
-      return stdout.trim();
+        // Read prompt file and pipe to stdin
+        fs.readFile(promptFile, 'utf-8')
+          .then(content => {
+            proc.stdin.write(content);
+            proc.stdin.end();
+          })
+          .catch(reject);
+
+        proc.stdout.on('data', (data) => {
+          stdout += data.toString();
+        });
+
+        proc.stderr.on('data', (data) => {
+          stderr += data.toString();
+        });
+
+        // Timeout handling
+        const timeout = setTimeout(() => {
+          proc.kill();
+          reject(new Error(`Claude CLI timeout after ${this.TIMEOUT}ms`));
+        }, this.TIMEOUT);
+
+        proc.on('close', (code) => {
+          clearTimeout(timeout);
+
+          if (stderr) {
+            console.error('Claude CLI stderr:', stderr);
+          }
+
+          if (code !== 0) {
+            reject(new Error(`Claude CLI exited with code ${code}. stderr: ${stderr}`));
+            return;
+          }
+
+          if (!stdout || stdout.trim().length === 0) {
+            reject(new Error(`Claude CLI returned empty output. stderr: ${stderr || 'none'}`));
+            return;
+          }
+
+          if (stderr && stderr.includes('error')) {
+            reject(new Error(`Claude CLI error: ${stderr}`));
+            return;
+          }
+
+          resolve(stdout.trim());
+        });
+
+        proc.on('error', (error) => {
+          clearTimeout(timeout);
+          reject(new Error(`Failed to spawn Claude CLI: ${error.message}`));
+        });
+      });
     } finally {
       this.activeCalls--;
       await fs.unlink(promptFile).catch(() => {}); // Cleanup temp file
@@ -215,30 +258,72 @@ Keep your characteristic humor and sarcasm, but don't lose important technical d
   }
 
   /**
-   * Play text via Google Cloud TTS
+   * Play text via Google Cloud TTS (SECURE: uses spawn with array arguments)
    */
   private static async playTTS(
     text: string,
     language: 'en' | 'zh'
   ): Promise<boolean> {
     try {
+      // Validate input before processing
+      this.validateTTSText(text);
+
       const langCode = language === 'en' ? 'en-GB' : 'cmn-TW';
       const scriptPath = path.resolve(
         __dirname,
         '../../../script/google_tts.sh'
       );
 
-      // Escape text for shell safety
-      const escapedText = text.replace(/"/g, '\\"').replace(/`/g, '\\`');
+      // SECURITY FIX: Use spawn() with argument array instead of template string
+      // No escaping needed - arguments are passed directly without shell interpretation
+      return await new Promise<boolean>((resolve, reject) => {
+        const proc = spawn(scriptPath, [text, langCode], {
+          timeout: 30000
+        });
 
-      await execAsync(`"${scriptPath}" "${escapedText}" "${langCode}"`, {
-        timeout: 30000,
+        let stderr = '';
+
+        proc.stderr.on('data', (data) => {
+          stderr += data.toString();
+        });
+
+        proc.on('close', (code) => {
+          if (code === 0) {
+            resolve(true);
+          } else {
+            console.error('TTS playback failed with code:', code, 'stderr:', stderr);
+            resolve(false); // Return false instead of rejecting
+          }
+        });
+
+        proc.on('error', (error) => {
+          console.error('TTS playback error:', error);
+          resolve(false);
+        });
       });
-
-      return true;
     } catch (error) {
       console.error('TTS playback failed:', error);
       return false;
+    }
+  }
+
+  /**
+   * Validate TTS text input (Defense in Depth)
+   */
+  private static validateTTSText(text: string): void {
+    // Max length to prevent DoS
+    if (text.length > 10000) {
+      throw new Error('Text too long (max 10000 characters)');
+    }
+
+    // Reject control characters
+    if (/[\x00-\x1F\x7F]/.test(text)) {
+      throw new Error('Text contains invalid control characters');
+    }
+
+    // Empty check
+    if (!text || text.trim().length === 0) {
+      throw new Error('Text cannot be empty');
     }
   }
 

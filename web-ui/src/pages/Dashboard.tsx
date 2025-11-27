@@ -10,7 +10,7 @@ import {
   HelpCircle 
 } from 'lucide-react';
 import { notesApi, projectsApi, journalsApi } from '../api';
-import type { Note, Project, JournalStats } from '../types';
+import type { Note, Project } from '../types';
 import { useI18n } from '../i18n/I18nContext';
 import OnboardingModal from '../components/OnboardingModal';
 

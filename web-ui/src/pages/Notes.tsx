@@ -73,12 +73,13 @@ interface NoteCardProps {
 function NoteCard({ note }: NoteCardProps) {
   const { t } = useI18n();
 
+  type CodeFlag = { label: string; color: string };
   const codeFlags = [
     note.isInspiring && { label: t.notes.codeFlags.inspiring, color: 'bg-yellow-100 text-yellow-800' },
     note.isUseful && { label: t.notes.codeFlags.useful, color: 'bg-green-100 text-green-800' },
     note.isPersonal && { label: t.notes.codeFlags.personal, color: 'bg-blue-100 text-blue-800' },
     note.isSurprising && { label: t.notes.codeFlags.surprising, color: 'bg-purple-100 text-purple-800' },
-  ].filter(Boolean);
+  ].filter(Boolean) as CodeFlag[];
 
   return (
     <Link

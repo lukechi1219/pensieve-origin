@@ -1,5 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { JarvisService } from '../../core/services/JarvisService';
+import { spawn } from 'child_process';
+import path from 'path';
 
 const router = Router();
 
@@ -268,28 +270,59 @@ router.post('/speak', async (req: Request, res: Response) => {
       });
     }
 
-    // Use the private playTTS method from JarvisService
-    // We need to access it, so let's import the exec functionality directly
-    const { exec } = require('child_process');
-    const { promisify } = require('util');
-    const path = require('path');
-    const execAsync = promisify(exec);
-
-    const langCode = language === 'en' ? 'en-GB' : 'cmn-TW';
-    const scriptPath = path.resolve(__dirname, '../../../script/google_tts.sh');
-
-    // Escape text for shell safety
-    const escapedText = text.replace(/"/g, '\\"').replace(/`/g, '\\`');
-
+    // SECURITY FIX: Validate input before processing
     try {
-      await execAsync(`"${scriptPath}" "${escapedText}" "${langCode}"`, {
-        timeout: 30000,
+      // Max length validation
+      if (text.length > 10000) {
+        return res.status(400).json({
+          success: false,
+          error: 'Text too long (max 10000 characters)',
+        });
+      }
+
+      // Control character validation
+      if (/[\x00-\x1F\x7F]/.test(text)) {
+        return res.status(400).json({
+          success: false,
+          error: 'Text contains invalid control characters',
+        });
+      }
+
+      const langCode = language === 'en' ? 'en-GB' : 'cmn-TW';
+      const scriptPath = path.resolve(__dirname, '../../../script/google_tts.sh');
+
+      // SECURITY FIX: Use spawn() with argument array instead of template string
+      // No escaping needed - arguments are passed directly without shell interpretation
+      const played = await new Promise<boolean>((resolve) => {
+        const proc = spawn(scriptPath, [text, langCode], {
+          timeout: 30000
+        });
+
+        let stderr = '';
+
+        proc.stderr.on('data', (data) => {
+          stderr += data.toString();
+        });
+
+        proc.on('close', (code) => {
+          if (code === 0) {
+            resolve(true);
+          } else {
+            console.error('TTS playback failed with code:', code, 'stderr:', stderr);
+            resolve(false);
+          }
+        });
+
+        proc.on('error', (error) => {
+          console.error('TTS playback error:', error);
+          resolve(false);
+        });
       });
 
       res.json({
         success: true,
         data: {
-          played: true,
+          played,
         },
       });
     } catch (ttsError: any) {

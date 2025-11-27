@@ -1,6 +1,10 @@
 import { Router, Request, Response } from 'express';
 import { ChatService } from '../../core/services/ChatService';
 import { JarvisService } from '../../core/services/JarvisService';
+import { spawn } from 'child_process';
+import fs from 'fs/promises';
+import path from 'path';
+import os from 'os';
 
 const router = Router();
 
@@ -203,14 +207,7 @@ ${conversationContext}
 
 請根據以上對話歷史回應用戶的最新訊息。保持你一貫的幽默和諷刺風格。`;
 
-      // Execute JARVIS (this will be handled by JarvisService's executeClaude method)
-      const { exec } = require('child_process');
-      const { promisify } = require('util');
-      const fs = require('fs/promises');
-      const path = require('path');
-      const os = require('os');
-      const execAsync = promisify(exec);
-
+      // Execute JARVIS using secure spawn() method
       // Create temp file for prompt
       const tempDir = os.tmpdir();
       const promptFile = path.join(
@@ -220,13 +217,64 @@ ${conversationContext}
       await fs.writeFile(promptFile, prompt, 'utf-8');
 
       try {
-        const { stdout } = await execAsync(
-          `claude --print --model haiku --allowedTools "Bash(_system/script/google_tts.sh:*)" < "${promptFile}"`,
-          { timeout: 60000, cwd: process.cwd() }
-        );
+        // SECURITY FIX: Use spawn() with argument array instead of template string
+        const response = await new Promise<string>((resolve, reject) => {
+          const args = [
+            '--print',
+            '--model', 'haiku',
+            '--allowedTools', 'Bash(_system/script/google_tts.sh:*)'
+          ];
 
-        // Extract response
-        const response = stdout.trim();
+          const proc = spawn('claude', args, {
+            cwd: process.cwd(),
+            stdio: ['pipe', 'pipe', 'pipe']
+          });
+
+          let stdout = '';
+          let stderr = '';
+
+          // Read prompt file and pipe to stdin
+          fs.readFile(promptFile, 'utf-8')
+            .then(content => {
+              proc.stdin.write(content);
+              proc.stdin.end();
+            })
+            .catch(reject);
+
+          proc.stdout.on('data', (data) => {
+            stdout += data.toString();
+          });
+
+          proc.stderr.on('data', (data) => {
+            stderr += data.toString();
+          });
+
+          const timeout = setTimeout(() => {
+            proc.kill();
+            reject(new Error('Claude CLI timeout after 60s'));
+          }, 60000);
+
+          proc.on('close', (code) => {
+            clearTimeout(timeout);
+
+            if (code !== 0) {
+              reject(new Error(`Claude CLI exited with code ${code}. stderr: ${stderr}`));
+              return;
+            }
+
+            if (!stdout || stdout.trim().length === 0) {
+              reject(new Error('Claude CLI returned empty output'));
+              return;
+            }
+
+            resolve(stdout.trim());
+          });
+
+          proc.on('error', (error) => {
+            clearTimeout(timeout);
+            reject(error);
+          });
+        });
 
         // Add JARVIS response to chat
         chat = await ChatService.addMessage(id, 'assistant', response);

@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { X, Folder, ChevronRight } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { X, Folder } from 'lucide-react';
 import { projectsApi } from '../api';
 import type { Project } from '../types';
 

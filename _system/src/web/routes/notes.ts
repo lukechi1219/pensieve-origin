@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { NoteService } from '../../core/services/NoteService.js';
 import { config } from '../../core/utils/config.js';
+import { validatePARAFolder } from '../../core/utils/pathSecurity.js';
 
 const router = Router();
 
@@ -234,17 +235,34 @@ router.delete('/:id', async (req: Request, res: Response) => {
 /**
  * POST /api/notes/:id/move
  * Move note to different folder
+ *
+ * SECURITY: Protected against path traversal (VULN-002)
+ * - Validates folder parameter
+ * - Validates subPath length
+ * - Logs security violations
+ * - NoteService.moveTo() performs additional validation
  */
 router.post('/:id/move', async (req: Request, res: Response) => {
-  try {
-    const { id } = req.params;
-    const { folder, subPath } = req.body;
+  // Declare variables outside try block for error handler access
+  const { id } = req.params;
+  const { folder, subPath } = req.body;
 
-    const validFolders = ['inbox', 'projects', 'areas', 'resources', 'archive'];
-    if (!validFolders.includes(folder)) {
+  try {
+    // SECURITY FIX: Validate folder using type guard
+    try {
+      validatePARAFolder(folder);
+    } catch (err: any) {
       return res.status(400).json({
         error: 'Invalid folder',
-        message: `Folder must be one of: ${validFolders.join(', ')}`,
+        message: err.message,
+      });
+    }
+
+    // SECURITY FIX: Validate subPath length (prevent resource exhaustion)
+    if (subPath && typeof subPath === 'string' && subPath.length > 200) {
+      return res.status(400).json({
+        error: 'Path too long',
+        message: 'subPath must be 200 characters or less',
       });
     }
 
@@ -258,7 +276,8 @@ router.post('/:id/move', async (req: Request, res: Response) => {
 
     const originalFolder = note.frontmatter.para_folder; // Store original folder
 
-    await NoteService.moveTo(note, folder as any, subPath);
+    // NoteService.moveTo() will validate path and prevent traversal
+    await NoteService.moveTo(note, folder, subPath);
 
     res.json({
       message: 'Note moved successfully',
@@ -266,10 +285,34 @@ router.post('/:id/move', async (req: Request, res: Response) => {
       to: folder,
       subPath,
     });
-  } catch (error) {
+  } catch (error: any) {
+    // SECURITY: Log path traversal attempts
+    const errorMessage = error instanceof Error ? error.message : String(error);
+
+    if (
+      errorMessage.includes('not allowed') ||
+      errorMessage.includes('outside vault') ||
+      errorMessage.includes('Security violation') ||
+      errorMessage.includes('traversal')
+    ) {
+      console.warn(
+        `[SECURITY] Path traversal attempt blocked:`,
+        `noteId=${id},`,
+        `folder=${folder},`,
+        `subPath=${subPath},`,
+        `error=${errorMessage}`
+      );
+      return res.status(400).json({
+        error: 'Invalid path',
+        message: 'The specified path is not allowed',
+      });
+    }
+
+    // Other errors
+    console.error('Move note error:', errorMessage);
     res.status(500).json({
       error: 'Failed to move note',
-      message: error instanceof Error ? error.message : String(error),
+      message: errorMessage,
     });
   }
 });

@@ -24,6 +24,7 @@ export interface DistillationEntry {
   level: number;
   date: string;
   type: string;
+  summary?: string;
 }
 
 // Journal types

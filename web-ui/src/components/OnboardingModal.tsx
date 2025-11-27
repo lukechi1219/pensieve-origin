@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useI18n } from '../i18n/I18nContext';
-import { X, Brain, Layers, FolderOpen, Sparkles, Rocket, ChevronRight, ChevronLeft, MessageSquare } from 'lucide-react';
+import { Brain, Layers, FolderOpen, Sparkles, Rocket, ChevronRight, ChevronLeft, MessageSquare } from 'lucide-react';
 
 interface OnboardingModalProps {
   isOpen: boolean;
@@ -103,10 +103,10 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onClose }) =>
             </div>
             
             <h2 className="text-3xl font-bold text-gray-900 mb-4 transition-all duration-300">
-              {t.onboarding[currentStepData.key as keyof typeof t.onboarding].title}
+              {(t.onboarding[currentStepData.key as keyof typeof t.onboarding] as { title: string; desc: string }).title}
             </h2>
             <p className="text-gray-600 text-lg leading-relaxed transition-all duration-300">
-              {t.onboarding[currentStepData.key as keyof typeof t.onboarding].desc}
+              {(t.onboarding[currentStepData.key as keyof typeof t.onboarding] as { title: string; desc: string }).desc}
             </p>
           </div>
 

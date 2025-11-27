@@ -6,7 +6,7 @@ import type { Note } from '../types';
 import { useI18n } from '../i18n/I18nContext';
 
 export default function Header() {
-  const { t, locale } = useI18n();
+  const { locale } = useI18n();
   const navigate = useNavigate();
   
   // Search state

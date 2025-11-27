@@ -1,5 +1,5 @@
 import { apiClient } from './client';
-import type { Project, Milestone, ListResponse } from '../types';
+import type { Project, ListResponse } from '../types';
 
 export interface CreateProjectData {
   name: string;

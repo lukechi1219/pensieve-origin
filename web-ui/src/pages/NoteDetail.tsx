@@ -145,12 +145,13 @@ export default function NoteDetail() {
     );
   }
 
+  type CodeFlag = { label: string; color: string };
   const codeFlags = [
     note.isInspiring && { label: '啟發', color: 'bg-yellow-100 text-yellow-800' },
     note.isUseful && { label: '實用', color: 'bg-green-100 text-green-800' },
     note.isPersonal && { label: '個人', color: 'bg-blue-100 text-blue-800' },
     note.isSurprising && { label: '驚奇', color: 'bg-purple-100 text-purple-800' },
-  ].filter(Boolean);
+  ].filter(Boolean) as CodeFlag[];
 
   // Determine the correct back link and label
   const getBackInfo = () => {
@@ -198,9 +199,10 @@ export default function NoteDetail() {
       archive: '封存',
     };
 
+    const folder = note.paraFolder || 'inbox';
     return {
-      link: `/notes/${note.paraFolder || 'inbox'}`,
-      label: folderLabels[note.paraFolder] || note.paraFolder || '收件匣',
+      link: `/notes/${folder}`,
+      label: folderLabels[folder] || folder,
     };
   };
 

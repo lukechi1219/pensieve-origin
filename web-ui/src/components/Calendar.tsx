@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { 
   format, 
   startOfMonth, 
@@ -90,7 +90,7 @@ export default function Calendar({ journals, currentDate, onDateSelect, onMonthC
 
       {/* Calendar Grid */}
       <div className="grid grid-cols-7 gap-1">
-        {calendarDays.map((day, idx) => {
+        {calendarDays.map((day) => {
           const isCurrentMonth = isSameMonth(day, monthStart);
           const journal = getJournalForDate(day);
           const isSelected = isSameDay(day, currentDate);

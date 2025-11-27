@@ -10,6 +10,7 @@ import {
   deleteFile,
 } from '../utils/fileSystem';
 import { generateTimestampId } from '../utils/dateUtils';
+import { sanitizeSubPath, validatePathWithinBase } from '../utils/pathSecurity';
 
 export class NoteService {
   private static vaultPath: string = process.env.VAULT_PATH || './vault';
@@ -198,6 +199,11 @@ export class NoteService {
 
   /**
    * Move note to different PARA folder
+   *
+   * SECURITY: Protected against path traversal attacks (VULN-002)
+   * - Sanitizes subPath to reject ../ and absolute paths
+   * - Validates final destination is within vault directory
+   * - Checks for symlink traversal attacks
    */
   static async moveTo(
     note: Note,
@@ -208,6 +214,9 @@ export class NoteService {
       throw new Error('Cannot move note without filePath');
     }
 
+    // SECURITY FIX: Sanitize user-provided subPath
+    const safeSubPath = sanitizeSubPath(subPath);
+
     const folderMap = {
       inbox: '0-inbox',
       projects: '1-projects',
@@ -216,10 +225,18 @@ export class NoteService {
       archive: '4-archive',
     };
 
-    const paraPath = path.join(folderMap[paraFolder], subPath);
+    // Build path with sanitized subPath
+    const paraPath = path.join(folderMap[paraFolder], safeSubPath);
     note.moveTo(paraFolder, paraPath);
 
     const newFilePath = this.getNotePath(note);
+
+    // SECURITY FIX: Validate final destination is within vault
+    // This is the critical defense - even if sanitization is bypassed,
+    // this check prevents writing outside the vault directory
+    await validatePathWithinBase(newFilePath, this.vaultPath);
+
+    // Safe to move - destination is validated
     await moveFile(note.filePath, newFilePath);
 
     note.filePath = newFilePath;

@@ -85,57 +85,14 @@ export default function Journals() {
     try {
       const dateStr = format(selectedDate, 'yyyy-MM-dd');
       await journalsApi.update(dateStr, { content: editContent });
-      
+
       // Update local state immediately
       const updatedJournal = { ...selectedJournal, content: editContent };
       setSelectedJournal(updatedJournal);
-      
+
       // Update in list as well
       setJournals(prev => prev.map(j => j.id === updatedJournal.id ? updatedJournal : j));
-      
-      // Reload in background - Removed to prevent race condition with stale data
-      // loadJournalsByMonth(currentMonth);
-      setIsEditing(false);
-    } catch (err) {
-      console.error('Failed to save journal:', err);
-      alert('儲存失敗，請稍後再試');
-    } finally {
-      setIsSaving(false);
-    }
-  };
 
-    } finally {
-      setLoadingMonth(false);
-    }
-  };
-
-  const handleEdit = () => {
-    if (selectedJournal) {
-      setEditContent(selectedJournal.content || '');
-      setIsEditing(true);
-    }
-  };
-
-  const handleCancel = () => {
-    setIsEditing(false);
-    setEditContent('');
-  };
-
-  const handleSave = async () => {
-    if (!selectedJournal) return;
-
-    setIsSaving(true);
-    try {
-      const dateStr = format(selectedDate, 'yyyy-MM-dd');
-      await journalsApi.update(dateStr, { content: editContent });
-      
-      // Update local state immediately
-      const updatedJournal = { ...selectedJournal, content: editContent };
-      setSelectedJournal(updatedJournal);
-      
-      // Update in list as well
-      setJournals(prev => prev.map(j => j.id === updatedJournal.id ? updatedJournal : j));
-      
       // Reload in background - Removed to prevent race condition with stale data
       // loadJournalsByMonth(currentMonth);
       setIsEditing(false);
