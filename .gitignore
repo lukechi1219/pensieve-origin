@@ -40,7 +40,3 @@ temp/
 
 # OS
 Thumbs.db
-
-# Test data and user content
-vault/0-inbox/
-vault/chat/
