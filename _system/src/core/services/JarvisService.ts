@@ -65,7 +65,7 @@ ${content}`;
       const args = [
         '--print',
         '--model', 'haiku',
-        '--allowedTools', 'Bash(_system/script/google_tts.sh:*)'
+        '--allowedTools', 'Read,Grep,WebSearch,Bash(_system/script/google_tts.sh:*)'
       ];
 
       return await new Promise<string>((resolve, reject) => {

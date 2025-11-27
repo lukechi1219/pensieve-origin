@@ -221,8 +221,8 @@ ${conversationContext}
         const response = await new Promise<string>((resolve, reject) => {
           const args = [
             '--print',
-            '--model', 'haiku',
-            '--allowedTools', 'Bash(_system/script/google_tts.sh:*)'
+            '--model', 'sonnet',
+            '--allowedTools', 'Read,Grep,WebSearch,Bash(_system/script/google_tts.sh:*)'
           ];
 
           const proc = spawn('claude', args, {
