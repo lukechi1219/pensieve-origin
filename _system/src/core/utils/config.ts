@@ -3,16 +3,27 @@ import path from 'path';
 import { existsSync } from 'fs';
 import { fileURLToPath } from 'url';
 
-// Load .env from _system directory (backend root)
+// Determine project root based on file location (works for both src/ and dist/)
+// src/core/utils/config.ts -> ../../../../ -> project root
+// dist/core/utils/config.js -> ../../../../ -> project root
+const projectRoot = path.resolve(__dirname, '../../../../');
+
+// Load .env from project root first (e.g., pensieve-origin/.env)
+const projectEnvPath = path.resolve(projectRoot, '.env');
+if (existsSync(projectEnvPath)) {
+  dotenv.config({ path: projectEnvPath });
+}
+
+// Load .env from backend directory (e.g., _system/.env) to allow overrides
 // src/core/utils/config.ts -> ../../../ -> _system/
 // dist/core/utils/config.js -> ../../../ -> _system/
 const backendRoot = path.resolve(__dirname, '../../../');
-const envPath = path.resolve(backendRoot, '.env');
-
-if (existsSync(envPath)) {
-  dotenv.config({ path: envPath });
+const backendEnvPath = path.resolve(backendRoot, '.env');
+if (existsSync(backendEnvPath)) {
+  dotenv.config({ path: backendEnvPath });
 } else {
-  // Fallback to default loading (process.cwd) if specific file not found
+  // If no specific backend .env, ensure default dotenv.config() is called
+  // in case the environment variables are set in process.cwd()
   dotenv.config();
 }
 

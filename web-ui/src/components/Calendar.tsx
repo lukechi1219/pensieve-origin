@@ -9,7 +9,8 @@ import {
   isSameMonth,
   isSameDay,
   addMonths,
-  subMonths
+  subMonths,
+  parseISO
 } from 'date-fns';
 import { zhTW } from 'date-fns/locale';
 import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, CheckCircle2 } from 'lucide-react';
@@ -55,7 +56,7 @@ export default function Calendar({ journals, currentDate, onDateSelect, onMonthC
   };
 
   const getJournalForDate = (date: Date) => {
-    return journals.find(j => isSameDay(new Date(j.date), date));
+    return journals.find(j => isSameDay(parseISO(j.date), date));
   };
 
   return (

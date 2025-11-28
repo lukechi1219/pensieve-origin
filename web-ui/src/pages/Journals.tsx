@@ -1,10 +1,11 @@
+import toast from 'react-hot-toast';
 import { useEffect, useState } from 'react';
 import { journalsApi } from '../api';
 import type { Journal, JournalStats } from '../types';
 import { Calendar as CalendarIcon, TrendingUp, Edit2, Save, X, Loader2, Eye, EyeOff, FileText, SplitSquareHorizontal, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useI18n } from '../i18n/I18nContext';
 import Calendar from '../components/Calendar';
-import { format, isSameDay } from 'date-fns';
+import { format, isSameDay, parseISO } from 'date-fns';
 import { zhTW } from 'date-fns/locale';
 import ReactMarkdown from 'react-markdown';
 
@@ -45,7 +46,7 @@ export default function Journals() {
   useEffect(() => {
     // Only update if not currently loading (prevents flashing during month change)
     if (!loadingMonth) {
-      const journal = journals.find(j => isSameDay(new Date(j.date), selectedDate));
+      const journal = journals.find(j => isSameDay(parseISO(j.date), selectedDate));
       setSelectedJournal(journal || null);
       setIsEditing(false);
     }
@@ -156,7 +157,7 @@ export default function Journals() {
       setIsEditing(false);
     } catch (err) {
       console.error('Failed to save journal:', err);
-      alert('儲存失敗，請稍後再試');
+      toast.error('儲存失敗，請稍後再試');
     } finally {
       setIsSaving(false);
     }
@@ -186,7 +187,7 @@ export default function Journals() {
       loadJournalStats();
     } catch (error) {
       console.error('Failed to create journal:', error);
-      alert('建立日記失敗');
+      toast.error('建立日記失敗');
     }
   };
 
