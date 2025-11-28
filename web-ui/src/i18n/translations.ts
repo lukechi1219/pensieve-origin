@@ -248,7 +248,7 @@ export const translations = {
 
     // App specific
     app: {
-      name: 'Second Brain',
+      name: 'A Second Brain',
     },
 
     // Time formats
