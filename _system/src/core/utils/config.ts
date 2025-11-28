@@ -1,5 +1,6 @@
 import dotenv from 'dotenv';
 import path from 'path';
+import { existsSync } from 'fs';
 import { fileURLToPath } from 'url';
 
 dotenv.config();
@@ -23,10 +24,32 @@ interface Config {
 }
 
 function getConfig(): Config {
-  const projectRoot = process.cwd();
+  // Determine project root based on file location (works for both src/ and dist/)
+  // src/core/utils/config.ts -> ../../../../ -> project root
+  // dist/core/utils/config.js -> ../../../../ -> project root
+  const projectRoot = path.resolve(__dirname, '../../../../');
+
+  let vaultPath: string;
+  if (process.env.VAULT_PATH) {
+    const resolvedFromCwd = path.resolve(process.cwd(), process.env.VAULT_PATH);
+    if (existsSync(resolvedFromCwd)) {
+      vaultPath = resolvedFromCwd;
+    } else {
+      // If relative path from CWD doesn't exist, try relative to project root
+      // This handles cases where CWD is _system but VAULT_PATH is ./vault (expected from root)
+      const resolvedFromProject = path.resolve(projectRoot, process.env.VAULT_PATH);
+      if (existsSync(resolvedFromProject)) {
+        vaultPath = resolvedFromProject;
+      } else {
+        vaultPath = resolvedFromCwd; // Fallback to original resolution
+      }
+    }
+  } else {
+    vaultPath = path.resolve(projectRoot, 'vault');
+  }
 
   return {
-    vaultPath: path.resolve(projectRoot, process.env.VAULT_PATH || './vault'),
+    vaultPath,
     defaultLanguage: (process.env.DEFAULT_LANGUAGE || 'en') as 'en' | 'zh',
     ttsScriptPath: path.resolve(projectRoot, process.env.TTS_SCRIPT_PATH || './_system/script/google_tts.sh'),
     defaultTTSVoiceEN: process.env.DEFAULT_TTS_VOICE_EN || 'en-GB-Standard-B',
