@@ -41,11 +41,24 @@ export class TelegramService {
         scriptError += data.toString();
       });
 
+      // Set a timeout to kill the process if it hangs
+      const timeout = setTimeout(() => {
+        child.kill();
+        reject(new Error('Telegram script timed out after 10 seconds'));
+      }, 10000);
+
       child.on('close', (code) => {
+        clearTimeout(timeout);
         if (code !== 0) {
           console.error(`Telegram script exited with code ${code}`);
           console.error(`Script stderr: ${scriptError}`);
-          return reject(new Error(`Failed to get unread Telegram messages: ${scriptError || 'Unknown error'}`));
+          // Don't reject if it's just a warning or non-critical error, return empty list
+          if (scriptError.includes('Error:')) {
+             return reject(new Error(`Failed to get unread Telegram messages: ${scriptError || 'Unknown error'}`));
+          }
+          // Fallback to empty list if code is non-zero but maybe not fatal (or we want to be resilient)
+           console.warn('Telegram script failed, returning empty list to prevent crash');
+           return resolve([]);
         }
 
         try {
@@ -53,16 +66,22 @@ export class TelegramService {
           if (!scriptOutput.trim()) {
             return resolve([]);
           }
-          const parsedOutput = JSON.parse(scriptOutput);
+          // Try to find the JSON array in the output (in case of other stdout noise)
+          const jsonMatch = scriptOutput.match(/\[.*\]/s);
+          const jsonString = jsonMatch ? jsonMatch[0] : scriptOutput;
+          
+          const parsedOutput = JSON.parse(jsonString);
           resolve(parsedOutput);
         } catch (jsonError) {
           console.error('Failed to parse JSON output from Telegram script:', jsonError);
           console.error(`Script output: ${scriptOutput}`);
-          reject(new Error(`Invalid JSON output from script: ${scriptOutput}`));
+          // Return empty array instead of crashing/rejecting to keep API alive
+          resolve([]);
         }
       });
 
       child.on('error', (err) => {
+        clearTimeout(timeout);
         console.error('Failed to start Telegram script process:', err);
         reject(err);
       });
