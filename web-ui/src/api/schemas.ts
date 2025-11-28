@@ -139,6 +139,18 @@ export const MilestoneSchema = z.object({
   completed_date: z.string().optional(),
 });
 
+// Simplified Project schema for list views
+export const ProjectListItemSchema = z.object({
+  name: z.string(),
+  description: z.string(),
+  status: z.enum(['active', 'completed', 'on-hold', 'archived']),
+  progress: z.object({
+    percentComplete: z.number(),
+  }),
+  deadline: z.string().optional(),
+  path: z.string(),
+});
+
 export const ProjectSchema = z.object({
   name: z.string(),
   description: z.string(),
@@ -168,7 +180,7 @@ export const ProjectSchema = z.object({
 
 export const ProjectListResponseSchema = z.object({
   count: z.number(),
-  projects: z.array(ProjectSchema),
+  projects: z.array(ProjectListItemSchema),
 });
 
 // JARVIS schemas

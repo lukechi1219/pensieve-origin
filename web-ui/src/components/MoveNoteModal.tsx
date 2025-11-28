@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, Folder } from 'lucide-react';
 import { projectsApi, notesApi } from '../api';
-import type { Project } from '../types';
+import type { ProjectListItem } from '../types';
 
 interface MoveNoteModalProps {
   isOpen: boolean;
@@ -12,7 +12,7 @@ interface MoveNoteModalProps {
 
 const MoveNoteModal: React.FC<MoveNoteModalProps> = ({ isOpen, onClose, currentFolder, onMove }) => {
   const [selectedFolder, setSelectedFolder] = useState<string>(currentFolder);
-  const [projects, setProjects] = useState<Project[]>([]);
+  const [projects, setProjects] = useState<ProjectListItem[]>([]);
   const [selectedProject, setSelectedProject] = useState<string>('');
   const [loadingProjects, setLoadingProjects] = useState(false);
   const [subfolders, setSubfolders] = useState<Array<{ name: string; count: number }>>([]);
@@ -112,7 +112,7 @@ const MoveNoteModal: React.FC<MoveNoteModalProps> = ({ isOpen, onClose, currentF
                         className="w-full p-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
                       >
                         <option value="">選擇專案...</option>
-                        {projects.map(project => (
+                        {projects.map((project: ProjectListItem) => (
                           <option key={project.name} value={project.name}>
                             {project.name}
                           </option>

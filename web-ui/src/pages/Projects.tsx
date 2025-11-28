@@ -1,13 +1,13 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { projectsApi } from '../api';
-import type { Project } from '../types';
+import type { ProjectListItem } from '../types';
 import { FolderKanban, TrendingUp, Plus, X } from 'lucide-react';
 import { useI18n } from '../i18n/I18nContext';
 
 export default function Projects() {
   const { t, locale } = useI18n();
-  const [projects, setProjects] = useState<Project[]>([]);
+  const [projects, setProjects] = useState<ProjectListItem[]>([]);
   const [loading, setLoading] = useState(true);
   
   // Modal state
@@ -226,7 +226,7 @@ export default function Projects() {
 }
 
 interface ProjectCardProps {
-  project: Project;
+  project: ProjectListItem;
 }
 
 function ProjectCard({ project }: ProjectCardProps) {

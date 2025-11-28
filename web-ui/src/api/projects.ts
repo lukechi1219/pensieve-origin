@@ -1,5 +1,5 @@
 import { apiClient } from './client';
-import type { Project, ListResponse } from '../types';
+import type { Project, ListResponse, ProjectListItem } from '../types';
 import {
   ProjectListResponseSchema,
   ProjectSchema,
@@ -26,7 +26,7 @@ export interface AddMilestoneData {
 
 export const projectsApi = {
   // List all projects
-  list: async (): Promise<ListResponse<Project>> => {
+  list: async (): Promise<ListResponse<ProjectListItem>> => {
     const response = await apiClient.get('/projects');
     const validated = validateResponse(response, ProjectListResponseSchema, 'projects.list');
 

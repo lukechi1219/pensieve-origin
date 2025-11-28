@@ -2,6 +2,7 @@ import express, { Express, Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import { config } from '../core/utils/config.js';
+import { createVaultStructure } from '../core/utils/vaultValidator.js';
 import notesRouter from './routes/notes.js';
 import journalsRouter from './routes/journals.js';
 import projectsRouter from './routes/projects.js';
@@ -91,35 +92,49 @@ app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
 
 // Start server
 const host = process.env.WEB_HOST || 'localhost';
-app.listen(port, host, () => {
-  console.log(`🚀 Pensieve API server running on http://${host}:${port}`);
-  console.log(`📂 Vault: ${config.vaultPath}`);
-  console.log(`\n📚 API Endpoints:`);
-  console.log(`   GET    /health`);
-  console.log(`   GET    /api/notes`);
-  console.log(`   POST   /api/notes`);
-  console.log(`   GET    /api/notes/:id`);
-  console.log(`   PUT    /api/notes/:id`);
-  console.log(`   DELETE /api/notes/:id`);
-  console.log(`   GET    /api/journals`);
-  console.log(`   GET    /api/journals/today`);
-  console.log(`   GET    /api/journals/stats`);
-  console.log(`   GET    /api/projects`);
-  console.log(`   POST   /api/projects`);
-  console.log(`   POST   /api/jarvis/summarize/:id`);
-  console.log(`   POST   /api/jarvis/distill/:id`);
-  console.log(`   POST   /api/jarvis/batch-summarize`);
-  console.log(`   GET    /api/jarvis/distillation-levels`);
-  console.log(`   GET    /api/chats`);
-  console.log(`   POST   /api/chats`);
-  console.log(`   GET    /api/chats/:id`);
-  console.log(`   DELETE /api/chats/:id`);
-  console.log(`   POST   /api/chats/:id/messages`);
-  console.log(`   GET    /api/templates`);
-  console.log(`   GET    /api/templates/:name`);
-  console.log(`   GET    /api/templates/:name/instantiate`);
-  console.log(`   GET    /api/telegram/unread`);
-  console.log(`\nPress Ctrl+C to stop`);
-});
+
+const startServer = async () => {
+  try {
+    // Initialize vault structure
+    await createVaultStructure();
+    console.log('✅ Vault structure verified');
+
+    app.listen(port, host, () => {
+      console.log(`🚀 Pensieve API server running on http://${host}:${port}`);
+      console.log(`📂 Vault: ${config.vaultPath}`);
+      console.log(`\n📚 API Endpoints:`);
+      console.log(`   GET    /health`);
+      console.log(`   GET    /api/notes`);
+      console.log(`   POST   /api/notes`);
+      console.log(`   GET    /api/notes/:id`);
+      console.log(`   PUT    /api/notes/:id`);
+      console.log(`   DELETE /api/notes/:id`);
+      console.log(`   GET    /api/journals`);
+      console.log(`   GET    /api/journals/today`);
+      console.log(`   GET    /api/journals/stats`);
+      console.log(`   GET    /api/projects`);
+      console.log(`   POST   /api/projects`);
+      console.log(`   POST   /api/jarvis/summarize/:id`);
+      console.log(`   POST   /api/jarvis/distill/:id`);
+      console.log(`   POST   /api/jarvis/batch-summarize`);
+      console.log(`   GET    /api/jarvis/distillation-levels`);
+      console.log(`   GET    /api/chats`);
+      console.log(`   POST   /api/chats`);
+      console.log(`   GET    /api/chats/:id`);
+      console.log(`   DELETE /api/chats/:id`);
+      console.log(`   POST   /api/chats/:id/messages`);
+      console.log(`   GET    /api/templates`);
+      console.log(`   GET    /api/templates/:name`);
+      console.log(`   GET    /api/templates/:name/instantiate`);
+      console.log(`   GET    /api/telegram/unread`);
+      console.log(`\nPress Ctrl+C to stop`);
+    });
+  } catch (error) {
+    console.error('❌ Failed to start server:', error);
+    process.exit(1);
+  }
+};
+
+startServer();
 
 export default app;

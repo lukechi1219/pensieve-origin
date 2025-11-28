@@ -64,6 +64,17 @@ export interface Chat {
 }
 
 // Project types
+export interface ProjectListItem {
+  name: string;
+  description: string;
+  status: 'active' | 'completed' | 'on-hold' | 'archived';
+  progress: {
+    percentComplete: number;
+  };
+  deadline?: string;
+  path: string;
+}
+
 export interface Project {
   name: string;
   description: string;

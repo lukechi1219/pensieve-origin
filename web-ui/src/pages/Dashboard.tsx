@@ -10,7 +10,7 @@ import {
   HelpCircle 
 } from 'lucide-react';
 import { notesApi, projectsApi, journalsApi } from '../api';
-import type { Note, Project } from '../types';
+import type { Note, ProjectListItem } from '../types';
 import { useI18n } from '../i18n/I18nContext';
 import OnboardingModal from '../components/OnboardingModal';
 
@@ -25,7 +25,7 @@ export default function Dashboard() {
   const { t, locale } = useI18n();
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [recentNotes, setRecentNotes] = useState<Note[]>([]);
-  const [recentProjects, setRecentProjects] = useState<Project[]>([]);
+  const [recentProjects, setRecentProjects] = useState<ProjectListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [showOnboarding, setShowOnboarding] = useState(false);
 
@@ -102,7 +102,7 @@ export default function Dashboard() {
         <button
           onClick={() => setShowOnboarding(true)}
           className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-full transition-colors"
-          title={locale === 'zh_Hant' ? '重看新手導覽' : 'Replay Onboarding'}
+          title={t.dashboard.replayOnboarding}
         >
           <HelpCircle className="h-6 w-6" />
         </button>
@@ -200,7 +200,7 @@ export default function Dashboard() {
           <div className="p-6">
             {recentProjects.length > 0 ? (
               <div className="space-y-4">
-                {recentProjects.map((project) => (
+                {recentProjects.map((project: ProjectListItem) => (
                   <Link
                     key={project.name}
                     to={`/projects/${project.name}`}

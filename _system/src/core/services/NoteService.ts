@@ -335,8 +335,9 @@ export class NoteService {
     const fileContent = serializeFrontmatter(note.frontmatter, note.content);
     await writeFile(newFilePath, fileContent);
 
-    // Delete old file
-    await deleteFile(note.filePath);
+    // Note: deleteFile(note.filePath) is NOT needed because moveFile() above
+    // (which calls fs.rename) already removed the source file.
+    // Calling deleteFile here would cause an ENOENT error.
 
     note.filePath = newFilePath;
     this.invalidateCache();
