@@ -220,15 +220,18 @@ ${conversationContext}
       const errorMsg = '抱歉，我現在無法回應。請稍後再試。';
       chat = await ChatService.addMessage(id, 'assistant', errorMsg);
     }
-  } catch (error: any) {
-    console.error('JARVIS integration error:', error);
-    // Continue even if JARVIS fails
-  }
 
-  res.json({
-    success: true,
-    data: chat ? chat.toJSON() : null,
-  });
+    res.json({
+      success: true,
+      data: chat.toJSON(),
+    });
+  } catch (error: any) {
+    console.error('Add message error:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message || 'Failed to add message',
+    });
+  }
 });
 
 /**

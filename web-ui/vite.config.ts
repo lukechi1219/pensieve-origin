@@ -9,7 +9,7 @@ export default defineConfig({
     react(),
   ],
   server: {
-    host: '192.168.0.23', // Listen on all network interfaces
+    host: '0.0.0.0',
     port: 5173,
   },
 })

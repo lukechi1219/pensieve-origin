@@ -17,7 +17,12 @@ export class GeminiService {
   /**
    * Map Claude models to Gemini equivalents
    */
-  private static mapModel(claudeModel?: string): string {
+  private static mapModel(claudeModel?: string): string | undefined {
+    // Currently defaulting to CLI default model as specific versions (gemini-2.0-flash)
+    // were causing "thinking not supported" errors or 404s.
+    return undefined;
+    
+    /* Future mapping:
     switch (claudeModel) {
       case 'haiku':
         return 'gemini-2.0-flash';
@@ -26,8 +31,9 @@ export class GeminiService {
       case 'opus':
         return 'gemini-2.0-pro-exp';
       default:
-        return 'gemini-2.0-flash';
+        return undefined;
     }
+    */
   }
 
   /**
@@ -55,13 +61,16 @@ export class GeminiService {
       const cwd = options.cwd || process.cwd();
 
       // Construct arguments for Gemini CLI
-      // Assuming gemini accepts input via stdin or similar mechanism for headless
-      // Based on docs: gemini --model <model>
-      // We will try piping to stdin which is standard
-      const args = [
-        '--model', model,
-        '--no-stream' // Ensure we get full response for headless
-      ];
+      const args: string[] = [];
+      
+      if (model) {
+        args.push('--model', model);
+      }
+
+      // Headless mode doesn't support granular --allowed-tools, use --yolo for auto-approval
+      if (options.allowedTools && options.allowedTools.length > 0) {
+         args.push('--yolo');
+      }
 
       return await new Promise<string>((resolve, reject) => {
         const proc = spawn('gemini', args, {

@@ -151,12 +151,12 @@ if [ -f "${VITE_CONFIG}" ]; then
         # Add server config if not exists
         sed -i.bak "s|plugins: \[|plugins: [|; /plugins: \[/a\\
   server: {\\
-    host: '${SELECTED_IP}',\\
+    host: '0.0.0.0',\\
     port: 5173,\\
   }," "${VITE_CONFIG}"
     else
-        # Update existing host
-        sed -i.bak "s|host: '[^']*'|host: '${SELECTED_IP}'|g" "${VITE_CONFIG}"
+        # Update existing host to always be 0.0.0.0 for stability
+        sed -i.bak "s|host: '[^']*'|host: '0.0.0.0'|g" "${VITE_CONFIG}"
     fi
     echo -e "${GREEN}✓ Updated ${VITE_CONFIG}${NC}"
 fi
