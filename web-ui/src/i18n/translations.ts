@@ -24,6 +24,7 @@ export const translations = {
       viewAll: 'View all →',
       emptyInbox: 'Inbox is empty',
       noActiveProjects: 'No active projects',
+      replayOnboarding: 'Replay Onboarding',
     },
 
     // Notes
@@ -74,6 +75,10 @@ export const translations = {
         resources: 'Resources',
         archive: 'Archive',
       },
+      invalidFolder: 'Invalid folder name. Please enter: inbox, projects, areas, resources, or archive',
+      movedTo: (folder: string, subPath?: string) =>
+        `Moved to ${folder}${subPath ? `/${subPath}` : ''}`,
+      moveFailed: 'Failed to move note',
     },
 
     // Journal
@@ -173,7 +178,7 @@ export const translations = {
       disableVoice: 'Disable voice companion',
       sendMessage: 'Send',
       sending: 'Sending...',
-      inputPlaceholder: 'Type a message... (Enter to send)',
+      inputPlaceholder: 'Type a message... (Ctrl+Enter to send)',
       noMessages: 'No messages yet, start the conversation!',
       deleteChat: 'Delete conversation',
       confirmDelete: 'Are you sure you want to delete this conversation?',
@@ -233,6 +238,7 @@ export const translations = {
       error: 'Error',
       success: 'Success',
       confirm: 'Confirm',
+      switchLanguage: 'Switch language',
       today: 'Today',
       yesterday: 'Yesterday',
       daysAgo: (days: number) => `${days} days ago`,
@@ -271,6 +277,7 @@ export const translations = {
       viewAll: '查看全部 →',
       emptyInbox: '收件匣是空的',
       noActiveProjects: '沒有活躍的專案',
+      replayOnboarding: '重看新手導覽',
     },
 
     // 筆記
@@ -321,6 +328,10 @@ export const translations = {
         resources: '資源',
         archive: '封存',
       },
+      invalidFolder: '無效的資料夾名稱。請輸入: inbox, projects, areas, resources, 或 archive',
+      movedTo: (folder: string, subPath?: string) =>
+        `已移動至 ${folder}${subPath ? `/${subPath}` : ''}`,
+      moveFailed: '移動失敗',
     },
 
     // 日記
@@ -420,7 +431,7 @@ export const translations = {
       disableVoice: '關閉語音陪聊',
       sendMessage: '送出',
       sending: '傳送中...',
-      inputPlaceholder: '輸入訊息... (Enter 送出)',
+      inputPlaceholder: '輸入訊息... (Ctrl+Enter 送出)',
       noMessages: '尚無訊息，開始對話吧！',
       deleteChat: '刪除對話',
       confirmDelete: '確定要刪除此對話嗎？',
@@ -475,6 +486,7 @@ export const translations = {
       edit: '編輯',
       back: '返回',
       next: '下一步',
+      switchLanguage: '切換語言',
       previous: '上一步',
       loading: '載入中...',
       error: '錯誤',

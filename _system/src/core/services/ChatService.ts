@@ -53,7 +53,10 @@ export class ChatService {
   /**
    * Get chat by ID
    */
-  static async getById(id: string): Promise<Chat | null> {
+  static async getById(
+    id: string,
+    options: { limit?: number; skip?: number } = {}
+  ): Promise<Chat | null> {
     // ID format: YYYYMMDD-HHMMSS-slug
     const year = id.substring(0, 4);
     const month = id.substring(4, 6);
@@ -65,7 +68,7 @@ export class ChatService {
     if (!file) return null;
 
     const filePath = path.join(monthPath, file);
-    return this.parseChat(filePath);
+    return this.parseChat(filePath, options);
   }
 
   /**
@@ -141,7 +144,10 @@ export class ChatService {
   /**
    * Parse a chat file
    */
-  private static async parseChat(filePath: string): Promise<Chat> {
+  private static async parseChat(
+    filePath: string,
+    options: { limit?: number; skip?: number } = {}
+  ): Promise<Chat> {
     const content = await fs.readFile(filePath, 'utf-8');
     const { frontmatter, content: body } = parseFrontmatter(content);
 
@@ -164,9 +170,28 @@ export class ChatService {
       }
     }
 
+    // Apply pagination if requested
+    let paginatedMessages = messages;
+    if (options.limit !== undefined || options.skip !== undefined) {
+      const total = messages.length;
+      const skip = options.skip || 0;
+      const limit = options.limit || total;
+      
+      // Calculate slice indices from the end
+      // Example: 100 messages. skip=0, limit=10 -> slice(90, 100)
+      // skip=10, limit=10 -> slice(80, 90)
+      const endIndex = Math.max(0, total - skip);
+      const startIndex = Math.max(0, endIndex - limit);
+      
+      paginatedMessages = messages.slice(startIndex, endIndex);
+    }
+
     // Cast frontmatter to ChatFrontmatter type
     const chatFrontmatter = frontmatter as unknown as ChatFrontmatter;
-    return new Chat(chatFrontmatter, messages, filePath);
+    // Ensure messageCount reflects the total on disk, not just the slice
+    chatFrontmatter.messageCount = messages.length; 
+    
+    return new Chat(chatFrontmatter, paginatedMessages, filePath);
   }
 
   /**

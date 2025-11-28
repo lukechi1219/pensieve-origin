@@ -51,11 +51,17 @@ router.get('/stats', async (req: Request, res: Response) => {
 /**
  * GET /api/chats/:id
  * Get a specific chat by ID
+ * Query params:
+ * - limit: number of messages to return (default: all)
+ * - skip: number of messages to skip from the end (default: 0)
  */
 router.get('/:id', async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const chat = await ChatService.getById(id);
+    const limit = req.query.limit ? parseInt(req.query.limit as string, 10) : undefined;
+    const skip = req.query.skip ? parseInt(req.query.skip as string, 10) : undefined;
+
+    const chat = await ChatService.getById(id, { limit, skip });
 
     if (!chat) {
       return res.status(404).json({

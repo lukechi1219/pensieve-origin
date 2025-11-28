@@ -1,5 +1,5 @@
-import type { Chat } from '../types';
 import { apiClient } from './client';
+import type { Chat } from '../types';
 import {
   ChatListResponseSchema,
   ChatStatsResponseSchema,
@@ -35,14 +35,19 @@ export const chatsApi = {
   },
 
   /**
-   * Get a specific chat by ID
+   * Get chat by ID
    */
-  getById: async (id: string): Promise<Chat> => {
-    const response = await apiClient.get(`/chats/${id}`);
+  getById: async (id: string, options?: { limit?: number; skip?: number }): Promise<Chat> => {
+    const params = new URLSearchParams();
+    if (options?.limit !== undefined) params.append('limit', options.limit.toString());
+    if (options?.skip !== undefined) params.append('skip', options.skip.toString());
+    
+    const queryString = params.toString() ? `?${params.toString()}` : '';
+    const response = await apiClient.get(`/chats/${id}${queryString}`);
     const validated = validateResponse(response, SingleChatResponseSchema, 'chats.getById');
     return extractData(validated);
   },
-
+  
   /**
    * Create a new chat
    */
@@ -70,6 +75,6 @@ export const chatsApi = {
     if (!response || typeof response !== 'object') {
       throw new Error('Invalid delete response format');
     }
-    return extractData(response);
+    return extractData(response); // Assuming extractData can handle {success:true, data:{id:id}}
   },
 };
