@@ -38,5 +38,8 @@ coverage/
 .cache/
 temp/
 
+# Telegram session file (generated)
+_system/script/telegram_session.session
+
 # OS
 Thumbs.db
