@@ -188,8 +188,8 @@ export const ProjectSchema = z.object({
   archive: z.object({
     archived: z.boolean(),
     archive_date: z.string().nullable(),
-    archive_reason: z.string(),
-    lessons_learned: z.string(),
+    archive_reason: z.string().nullable(),
+    lessons_learned: z.string().nullable(),
   }),
   path: z.string().optional(),
   folder_path: z.string().optional(),

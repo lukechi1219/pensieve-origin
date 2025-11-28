@@ -112,8 +112,8 @@ export interface Project {
   archive: {
     archived: boolean;
     archive_date: string | null;
-    archive_reason: string;
-    lessons_learned: string;
+    archive_reason: string | null;
+    lessons_learned: string | null;
   };
   path?: string;
   folder_path?: string;
