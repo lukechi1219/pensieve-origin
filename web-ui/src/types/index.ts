@@ -1,4 +1,21 @@
 // Note types
+export interface NoteListItem {
+  id: string;
+  title: string;
+  created: string;
+  modified: string;
+  tags: string[];
+  paraFolder?: 'inbox' | 'projects' | 'areas' | 'resources' | 'archive';
+  paraPath?: string;
+  distillationLevel: 0 | 1 | 2 | 3 | 4;
+  isInspiring: boolean;
+  isUseful: boolean;
+  isPersonal: boolean;
+  isSurprising: boolean;
+  status: 'active' | 'archived' | 'draft';
+  filePath?: string; // Source of truth for note location
+}
+
 export interface Note {
   id: string;
   title: string;

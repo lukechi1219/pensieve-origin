@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import { notesApi, jarvisApi } from '../api';
-import type { Note } from '../types';
+import type { NoteListItem } from '../types';
 import { FileText, Tag, Plus, Folder, CheckSquare, Square, Sparkles } from 'lucide-react';
 import { useI18n } from '../i18n/I18nContext';
 import type { BatchSummarizeProgress } from '../api/jarvis';
@@ -10,7 +11,7 @@ export default function Notes() {
   const { t } = useI18n();
   const navigate = useNavigate();
   const { folder = 'inbox' } = useParams<{ folder: string }>();
-  const [notes, setNotes] = useState<Note[]>([]);
+  const [notes, setNotes] = useState<NoteListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [newNoteTitle, setNewNoteTitle] = useState('');
@@ -89,7 +90,7 @@ export default function Notes() {
       navigate(`/note/${note.id}`);
     } catch (error) {
       console.error('Failed to create note:', error);
-      alert('建立筆記失敗');
+      toast.error('建立筆記失敗');
     } finally {
       setCreating(false);
     }
@@ -186,17 +187,24 @@ export default function Notes() {
               results,
             }));
             setBatchRunning(false);
+            const successCount = results.filter(r => !r.error).length;
+            const failCount = results.length - successCount;
+            if (failCount === 0) {
+              toast.success(`成功總結 ${successCount} 個筆記！`);
+            } else {
+              toast.error(`完成：${successCount} 成功，${failCount} 失敗`);
+            }
           },
           onError: (error: string) => {
             console.error('Batch summarization failed:', error);
-            alert(`批次總結失敗: ${error}`);
+            toast.error(`批次總結失敗: ${error}`);
             setBatchRunning(false);
           },
         }
       );
     } catch (error) {
       console.error('Failed to start batch summarization:', error);
-      alert('啟動批次總結失敗');
+      toast.error('啟動批次總結失敗');
       setBatchRunning(false);
     }
   };
@@ -330,7 +338,7 @@ export default function Notes() {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {filteredNotes.map((note) => (
+            {filteredNotes.map((note: NoteListItem) => (
               <NoteCard
                 key={note.id}
                 note={note}
@@ -451,7 +459,7 @@ export default function Notes() {
             <div className="flex-1 overflow-y-auto p-6 space-y-4">
               {Array.from(selectedNoteIds).map((noteId) => {
                 const result = batchProgress.results.find(r => r.noteId === noteId);
-                const note = notes.find(n => n.id === noteId);
+                const note = notes.find((n: NoteListItem) => n.id === noteId);
                 const isProcessing = batchProgress.noteId === noteId && !result;
                 const isPending = !result && !isProcessing;
 
@@ -539,7 +547,7 @@ export default function Notes() {
 }
 
 interface NoteCardProps {
-  note: Note;
+  note: NoteListItem;
   isSelected: boolean;
   onToggleSelect: (noteId: string) => void;
 }
@@ -586,10 +594,10 @@ function NoteCard({ note, isSelected, onToggleSelect }: NoteCardProps) {
       >
       <h3 className="font-semibold text-gray-900 mb-2">{note.title}</h3>
 
-      {/* Preview content */}
-      <p className="text-sm text-gray-600 line-clamp-3 mb-4">
+      {/* Preview content - NoteListItem does not have content field */}
+      {/* <p className="text-sm text-gray-600 line-clamp-3 mb-4">
         {note.content}
-      </p>
+      </p> */}
 
       {/* Meta info */}
       <div className="space-y-2">

@@ -1,5 +1,5 @@
 import { apiClient } from './client';
-import type { Note, ListResponse } from '../types';
+import type { Note, ListResponse, NoteListItem } from '../types';
 import {
   NoteListResponseSchema,
   NoteSchema,
@@ -29,7 +29,7 @@ export const notesApi = {
     folder?: string;
     tag?: string;
     code?: string;
-  }): Promise<ListResponse<Note>> => {
+  }): Promise<ListResponse<NoteListItem>> => {
     const query = new URLSearchParams();
     if (params?.folder) query.set('folder', params.folder);
     if (params?.tag) query.set('tag', params.tag);

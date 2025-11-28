@@ -1,13 +1,13 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { projectsApi, notesApi } from '../api';
-import type { Project, Note } from '../types';
+import type { Project, NoteListItem } from '../types';
 import { ArrowLeft, Calendar, TrendingUp, CheckCircle, Circle, Plus, Flag, Filter, ArrowUpDown } from 'lucide-react';
 
 export default function ProjectDetail() {
   const { name } = useParams<{ name: string }>();
   const [project, setProject] = useState<Project | null>(null);
-  const [notes, setNotes] = useState<Note[]>([]);
+  const [notes, setNotes] = useState<NoteListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [updating, setUpdating] = useState(false);
@@ -410,7 +410,7 @@ export default function ProjectDetail() {
               </div>
             ) : (
               <div className="space-y-3">
-                {notes.map((note) => (
+                {notes.map((note: NoteListItem) => (
                   <Link
                     key={note.id}
                     to={`/note/${note.id}`}

@@ -10,7 +10,7 @@ import {
   HelpCircle 
 } from 'lucide-react';
 import { notesApi, projectsApi, journalsApi } from '../api';
-import type { Note, ProjectListItem } from '../types';
+import type { ProjectListItem, NoteListItem } from '../types';
 import { useI18n } from '../i18n/I18nContext';
 import OnboardingModal from '../components/OnboardingModal';
 
@@ -24,7 +24,7 @@ interface DashboardStats {
 export default function Dashboard() {
   const { t, locale } = useI18n();
   const [stats, setStats] = useState<DashboardStats | null>(null);
-  const [recentNotes, setRecentNotes] = useState<Note[]>([]);
+  const [recentNotes, setRecentNotes] = useState<NoteListItem[]>([]);
   const [recentProjects, setRecentProjects] = useState<ProjectListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [showOnboarding, setShowOnboarding] = useState(false);
@@ -38,15 +38,21 @@ export default function Dashboard() {
           journalsApi.getStats(),
         ]);
 
+        console.log('Dashboard - notesRes:', notesRes);
+        console.log('Dashboard - projectsRes:', projectsRes);
+        console.log('Dashboard - journalRes:', journalRes);
+
         // Calculate inbox count (notes in 'inbox' folder)
         const inboxCount = notesRes.items.filter(
           (n) => !n.paraFolder || n.paraFolder === 'inbox'
         ).length;
+        console.log('Dashboard - inboxCount:', inboxCount);
 
         // Calculate active projects
         const activeProjects = projectsRes.items.filter(
           (p) => p.status === 'active'
         );
+        console.log('Dashboard - activeProjects:', activeProjects);
 
         setStats({
           inboxCount,
@@ -55,7 +61,9 @@ export default function Dashboard() {
           totalJournals: journalRes.totalEntries,
         });
 
+        console.log('Dashboard - recentNotes before set:', notesRes.items.slice(0, 5));
         setRecentNotes(notesRes.items.slice(0, 5));
+        console.log('Dashboard - recentProjects before set:', activeProjects.slice(0, 5));
         setRecentProjects(activeProjects.slice(0, 5));
       } catch (error) {
         console.error('Failed to load dashboard data:', error);

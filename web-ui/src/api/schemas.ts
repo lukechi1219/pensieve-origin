@@ -65,6 +65,23 @@ export const DistillationEntrySchema = z.object({
 });
 
 // Note schemas
+export const NoteListItemSchema = z.object({
+  id: z.string(),
+  title: z.string(),
+  created: z.string(),
+  modified: z.string(),
+  tags: z.array(z.string()),
+  filePath: z.string().optional(),
+  paraFolder: z.enum(['inbox', 'projects', 'areas', 'resources', 'archive']).optional(),
+  paraPath: z.string().optional(),
+  distillationLevel: z.union([z.literal(0), z.literal(1), z.literal(2), z.literal(3), z.literal(4)]),
+  isInspiring: z.boolean(),
+  isUseful: z.boolean(),
+  isPersonal: z.boolean(),
+  isSurprising: z.boolean(),
+  status: z.enum(['active', 'archived', 'draft']),
+});
+
 export const NoteSchema = z.object({
   id: z.string(),
   title: z.string(),
@@ -86,7 +103,7 @@ export const NoteSchema = z.object({
 
 export const NoteListResponseSchema = z.object({
   count: z.number(),
-  notes: z.array(NoteSchema),
+  notes: z.array(NoteListItemSchema),
 });
 
 export const CreateNoteResponseSchema = z.object({

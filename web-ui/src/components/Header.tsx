@@ -2,7 +2,7 @@ import { Search, Plus, X, FileText, Loader2, BookOpen, Menu } from 'lucide-react
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { notesApi, journalsApi } from '../api';
-import type { Note, Journal } from '../types';
+import type { NoteListItem, Journal } from '../types';
 import { useI18n } from '../i18n/I18nContext';
 
 interface HeaderProps {
@@ -16,7 +16,7 @@ export default function Header({ onMenuClick }: HeaderProps) {
   // Search state
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
-  const [searchResults, setSearchResults] = useState<{ notes: Note[]; journals: Journal[] }>({ notes: [], journals: [] });
+  const [searchResults, setSearchResults] = useState<{ notes: NoteListItem[]; journals: Journal[] }>({ notes: [], journals: [] });
   const [showResults, setShowResults] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
 
@@ -141,7 +141,7 @@ export default function Header({ onMenuClick }: HeaderProps) {
                         <div className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
                           {locale === 'zh_Hant' ? '筆記' : 'Notes'}
                         </div>
-                        {searchResults.notes.map(note => (
+                        {searchResults.notes.map((note: NoteListItem) => (
                           <Link
                             key={note.id}
                             to={`/note/${note.id}`}
