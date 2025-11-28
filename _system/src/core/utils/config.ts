@@ -20,7 +20,7 @@ if (existsSync(projectEnvPath)) {
 const backendRoot = path.resolve(__dirname, '../../../');
 const backendEnvPath = path.resolve(backendRoot, '.env');
 if (existsSync(backendEnvPath)) {
-  dotenv.config({ path: backendEnvPath });
+  dotenv.config({ path: backendEnvPath, override: true });
 } else {
   // If no specific backend .env, ensure default dotenv.config() is called
   // in case the environment variables are set in process.cwd()
