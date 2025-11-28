@@ -106,9 +106,8 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
         {/* Footer */}
         <div className="p-4 border-t border-gray-200 space-y-3">
           <LanguageSwitcher />
-          <div className="text-xs text-gray-500 text-center">
-            CODE 方法論
-            <div className="mt-1">Capture • Organize • Distill • Express</div>
+                      <div className="text-xs text-gray-500 text-center">
+                        {t.onboarding.code.title}            <div className="mt-1">Capture • Organize • Distill • Express</div>
           </div>
         </div>
       </div>
@@ -169,9 +168,8 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
         {/* Footer */}
         <div className="p-4 border-t border-gray-200 space-y-3">
           <LanguageSwitcher />
-          <div className="text-xs text-gray-500 text-center">
-            CODE 方法論
-            <div className="mt-1">Capture • Organize • Distill • Express</div>
+                      <div className="text-xs text-gray-500 text-center">
+                        {t.onboarding.code.title}            <div className="mt-1">Capture • Organize • Distill • Express</div>
           </div>
         </div>
       </div>
