@@ -17,6 +17,9 @@ interface Config {
   journalAutoCreate: boolean;
   journalDefaultTemplate: string;
   autoArchiveCompletedProjects: boolean;
+  telegramAppApiId?: number;
+  telegramAppApiHash?: string;
+  telegramSessionName?: string;
 }
 
 function getConfig(): Config {
@@ -35,6 +38,9 @@ function getConfig(): Config {
     journalAutoCreate: process.env.JOURNAL_AUTO_CREATE === 'true',
     journalDefaultTemplate: process.env.JOURNAL_DEFAULT_TEMPLATE || 'daily-reflection',
     autoArchiveCompletedProjects: process.env.AUTO_ARCHIVE_COMPLETED_PROJECTS === 'true',
+    telegramAppApiId: process.env.TELEGRAM_APP_API_ID ? parseInt(process.env.TELEGRAM_APP_API_ID, 10) : undefined,
+    telegramAppApiHash: process.env.TELEGRAM_APP_API_HASH,
+    telegramSessionName: process.env.TELEGRAM_SESSION_NAME || 'telegram_session',
   };
 }
 

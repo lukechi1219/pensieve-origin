@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import {
   LayoutDashboard,
@@ -6,11 +7,13 @@ import {
   FolderKanban,
   Inbox,
   Archive,
-  MessageSquare
+  MessageSquare,
+  Send
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { useI18n } from '../i18n/I18nContext';
 import LanguageSwitcher from './LanguageSwitcher';
+import { getUnreadTelegramMessages } from '../api/telegram';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -19,6 +22,24 @@ interface SidebarProps {
 
 export default function Sidebar({ isOpen, onClose }: SidebarProps) {
   const { t } = useI18n();
+  const [telegramUnreadCount, setTelegramUnreadCount] = useState<number>(0);
+
+  useEffect(() => {
+    const fetchTelegramUnread = async () => {
+      try {
+        const chats = await getUnreadTelegramMessages();
+        const total = chats.reduce((sum, chat) => sum + chat.unread_count, 0);
+        setTelegramUnreadCount(total);
+      } catch (error) {
+        console.error('Failed to fetch Telegram unread count', error);
+      }
+    };
+
+    fetchTelegramUnread();
+    // Poll every minute
+    const interval = setInterval(fetchTelegramUnread, 60000);
+    return () => clearInterval(interval);
+  }, []);
 
   const navigation = [
     { name: t.nav.dashboard, href: '/', icon: LayoutDashboard },
@@ -28,6 +49,12 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
     { name: t.nav.resources, href: '/notes/resources', icon: Archive },
     { name: t.nav.journal, href: '/journals', icon: BookOpen },
     { name: t.nav.chat, href: '/chats', icon: MessageSquare },
+    { 
+      name: `TG (${telegramUnreadCount})`, 
+      href: 'https://web.telegram.org/k/', 
+      icon: Send,
+      external: true
+    },
   ];
 
   return (
@@ -43,21 +70,36 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
         {/* Navigation */}
         <nav className="flex-1 p-4 space-y-1">
           {navigation.map((item) => (
-            <NavLink
-              key={item.href}
-              to={item.href}
-              className={({ isActive }) =>
-                cn(
-                  'flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors',
-                  isActive
-                    ? 'bg-blue-50 text-blue-700'
-                    : 'text-gray-700 hover:bg-gray-100'
-                )
-              }
-            >
-              <item.icon className="mr-3 h-5 w-5" />
-              {item.name}
-            </NavLink>
+            item.external ? (
+              <a
+                key={item.href}
+                href={item.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={cn(
+                  'flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors text-gray-700 hover:bg-gray-100'
+                )}
+              >
+                <item.icon className="mr-3 h-5 w-5" />
+                {item.name}
+              </a>
+            ) : (
+              <NavLink
+                key={item.href}
+                to={item.href}
+                className={({ isActive }) =>
+                  cn(
+                    'flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors',
+                    isActive
+                      ? 'bg-blue-50 text-blue-700'
+                      : 'text-gray-700 hover:bg-gray-100'
+                  )
+                }
+              >
+                <item.icon className="mr-3 h-5 w-5" />
+                {item.name}
+              </NavLink>
+            )
           ))}
         </nav>
 
@@ -89,22 +131,38 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
         {/* Navigation */}
         <nav className="flex-1 p-4 space-y-1">
           {navigation.map((item) => (
-            <NavLink
-              key={item.href}
-              to={item.href}
-              onClick={onClose}
-              className={({ isActive }) =>
-                cn(
-                  'flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors',
-                  isActive
-                    ? 'bg-blue-50 text-blue-700'
-                    : 'text-gray-700 hover:bg-gray-100'
-                )
-              }
-            >
-              <item.icon className="mr-3 h-5 w-5" />
-              {item.name}
-            </NavLink>
+            item.external ? (
+              <a
+                key={item.href}
+                href={item.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={onClose}
+                className={cn(
+                  'flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors text-gray-700 hover:bg-gray-100'
+                )}
+              >
+                <item.icon className="mr-3 h-5 w-5" />
+                {item.name}
+              </a>
+            ) : (
+              <NavLink
+                key={item.href}
+                to={item.href}
+                onClick={onClose}
+                className={({ isActive }) =>
+                  cn(
+                    'flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors',
+                    isActive
+                      ? 'bg-blue-50 text-blue-700'
+                      : 'text-gray-700 hover:bg-gray-100'
+                  )
+                }
+              >
+                <item.icon className="mr-3 h-5 w-5" />
+                {item.name}
+              </NavLink>
+            )
           ))}
         </nav>
 
