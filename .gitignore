@@ -40,6 +40,8 @@ temp/
 
 # Telegram session file (generated)
 _system/script/telegram_session.session
+_system/script/telegram_session.session-journal
+_system/script/unread_log.txt
 
 # OS
 Thumbs.db

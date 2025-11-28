@@ -44,11 +44,18 @@ export class TelegramService {
       // Set a timeout to kill the process if it hangs
       const timeout = setTimeout(() => {
         child.kill();
-        reject(new Error('Telegram script timed out after 10 seconds'));
-      }, 10000);
+        reject(new Error('Telegram script timed out after 30 seconds'));
+      }, 30000);
 
       child.on('close', (code) => {
         clearTimeout(timeout);
+        // Always log script output and errors for debugging purposes
+        if (scriptOutput.trim()) {
+            console.log('Telegram script stdout:', scriptOutput);
+        }
+        if (scriptError.trim()) {
+            console.error('Telegram script stderr:', scriptError);
+        }
         if (code !== 0) {
           console.error(`Telegram script exited with code ${code}`);
           console.error(`Script stderr: ${scriptError}`);
@@ -67,7 +74,8 @@ export class TelegramService {
             return resolve([]);
           }
           // Try to find the JSON array in the output (in case of other stdout noise)
-          const jsonMatch = scriptOutput.match(/\[.*\]/s);
+          // Look for the last occurrence of a JSON array pattern
+          const jsonMatch = scriptOutput.match(/\[.*\]\s*$/s); // Updated regex to match at end
           const jsonString = jsonMatch ? jsonMatch[0] : scriptOutput;
           
           const parsedOutput = JSON.parse(jsonString);
