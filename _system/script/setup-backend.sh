@@ -19,12 +19,35 @@ cd "$SYSTEM_DIR"
 # Install dependencies
 echo "📥 Installing backend dependencies..."
 if npm install; then
-    echo "✅ Backend dependencies installed successfully"
+    echo "✅ Backend Node.js dependencies installed successfully"
 else
-    echo "❌ Failed to install backend dependencies"
+    echo "❌ Failed to install backend Node.js dependencies"
     exit 1
 fi
 
+echo ""
+
+# Setup Python virtual environment for Telegram script
+echo "🐍 Setting up Python virtual environment..."
+VENV_DIR="$SCRIPT_DIR/venv"
+if [ ! -d "$VENV_DIR" ]; then
+    python3 -m venv "$VENV_DIR"
+    echo "✅ Python virtual environment created"
+else
+    echo "ℹ️  Python virtual environment already exists, skipping creation"
+fi
+
+# Activate venv and install Python dependencies
+source "$VENV_DIR/bin/activate"
+echo "📥 Installing Python dependencies from requirements.txt..."
+if pip install -r "$SCRIPT_DIR/requirements.txt"; then
+    echo "✅ Python dependencies installed successfully"
+else
+    echo "❌ Failed to install Python dependencies"
+    exit 1
+fi
+deactivate
+echo "✅ Python virtual environment configured"
 echo ""
 
 # Build TypeScript
