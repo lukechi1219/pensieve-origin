@@ -79,6 +79,8 @@ export const translations = {
       movedTo: (folder: string, subPath?: string) =>
         `Moved to ${folder}${subPath ? `/${subPath}` : ''}`,
       moveFailed: 'Failed to move note',
+      allNotes: 'All Notes',
+      subfolderFilter: 'Subfolder Filter',
     },
 
     // Journal
@@ -244,6 +246,11 @@ export const translations = {
       daysAgo: (days: number) => `${days} days ago`,
     },
 
+    // App specific
+    app: {
+      name: 'Second Brain',
+    },
+
     // Time formats
     time: {
       justNow: 'Just now',
@@ -332,6 +339,8 @@ export const translations = {
       movedTo: (folder: string, subPath?: string) =>
         `已移動至 ${folder}${subPath ? `/${subPath}` : ''}`,
       moveFailed: '移動失敗',
+      allNotes: '所有筆記',
+      subfolderFilter: '子資料夾篩選',
     },
 
     // 日記
@@ -495,6 +504,11 @@ export const translations = {
       today: '今天',
       yesterday: '昨天',
       daysAgo: (days: number) => `${days} 天前`,
+    },
+
+    // 應用程式
+    app: {
+      name: '第二大腦',
     },
 
     // 時間格式

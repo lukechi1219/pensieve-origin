@@ -64,7 +64,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
         {/* Logo */}
         <div className="p-6 border-b border-gray-200">
           <h1 className="text-2xl font-bold text-gray-900">Pensieve</h1>
-          <p className="text-sm text-gray-500 mt-1">第二大腦</p>
+          <p className="text-sm text-gray-500 mt-1">{t.app.name}</p>
         </div>
 
         {/* Navigation */}
@@ -125,7 +125,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
         {/* Logo */}
         <div className="p-6 border-b border-gray-200">
           <h1 className="text-2xl font-bold text-gray-900">Pensieve</h1>
-          <p className="text-sm text-gray-500 mt-1">第二大腦</p>
+          <p className="text-sm text-gray-500 mt-1">{t.app.name}</p>
         </div>
 
         {/* Navigation */}

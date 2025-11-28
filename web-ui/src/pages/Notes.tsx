@@ -242,7 +242,7 @@ export default function Notes() {
       {subfolders.length > 0 && (
         <div className="bg-white rounded-lg shadow p-6">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-gray-900">子資料夾篩選</h2>
+            <h2 className="text-lg font-semibold text-gray-900">{t.notes.subfolderFilter}</h2>
             {selectedSubfolder && (
               <button
                 onClick={() => setSelectedSubfolder(null)}
@@ -286,7 +286,7 @@ export default function Notes() {
       <div className="bg-white rounded-lg shadow p-6">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold text-gray-900">
-            {selectedSubfolder ? `${selectedSubfolder} 資料夾` : '所有筆記'}
+            {selectedSubfolder ? `${selectedSubfolder} 資料夾` : t.notes.allNotes}
           </h2>
           <p className="text-sm text-gray-600">
             {t.notes.count(filteredNotes.length)}

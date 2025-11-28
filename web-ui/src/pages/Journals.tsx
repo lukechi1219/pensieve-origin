@@ -233,17 +233,17 @@ export default function Journals() {
         <button
           onClick={() => setShowCalendar(!showCalendar)}
           className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors shadow-sm"
-          title={showCalendar ? '隱藏日曆' : '顯示日曆'}
+          title={showCalendar ? t.journal.hideCalendar : t.journal.showCalendar}
         >
           {showCalendar ? (
             <>
               <EyeOff className="h-4 w-4" />
-              隱藏日曆
+              {t.journal.hideCalendar}
             </>
           ) : (
             <>
               <Eye className="h-4 w-4" />
-              顯示日曆
+              {t.journal.showCalendar}
             </>
           )}
         </button>
