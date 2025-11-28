@@ -40,13 +40,12 @@ export default function ChatDetail() {
     }
   }, [id]);
 
-  // Auto-scroll to bottom only on initial load, new messages (sending), or Jarvis response
-  // Skip scrolling when fetching older messages
+  // Auto-scroll to bottom on initial load (when loading finishes)
   useEffect(() => {
-    if (!isFetchingMore && chat?.messages.length) {
+    if (!loading && chat?.messages.length) {
       scrollToBottom();
     }
-  }, [chat?.messages.length, isJarvisResponding]);
+  }, [loading, chat?.id]);
 
   // Restore scroll position when prepending messages
   useLayoutEffect(() => {
@@ -168,6 +167,7 @@ export default function ChatDetail() {
     try {
       setSending(true);
       setIsJarvisResponding(true); // Start showing JARVIS thinking
+      setTimeout(scrollToBottom, 0); // Scroll to show thinking indicator
 
       const updatedChatFull = await chatsApi.addMessage(id, messageToSend, language, voiceMode);
       
@@ -184,6 +184,8 @@ export default function ChatDetail() {
            modified: updatedChatFull.modified
          }) : null);
          
+         setTimeout(scrollToBottom, 0); // Scroll to show response
+
          if (voiceMode) {
             try {
               await jarvisApi.speak(lastMessage.content, language);
