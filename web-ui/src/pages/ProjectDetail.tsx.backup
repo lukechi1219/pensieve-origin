@@ -4,14 +4,12 @@ import { projectsApi, notesApi } from '../api';
 import type { Project, NoteListItem } from '../types';
 import { ArrowLeft, Calendar, TrendingUp, CheckCircle, Circle, Plus, Flag, Filter, ArrowUpDown } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { useI18n } from '../i18n/I18nContext';
 
 export default function ProjectDetail() {
   const { name } = useParams<{ name: string }>();
   const [project, setProject] = useState<Project | null>(null);
   const [notes, setNotes] = useState<NoteListItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const { t, locale } = useI18n();
   const [error, setError] = useState<string | null>(null);
   const [updating, setUpdating] = useState(false);
 
@@ -55,10 +53,10 @@ export default function ProjectDetail() {
     try {
       await projectsApi.update(name, { status: newStatus });
       setProject({ ...project, status: newStatus });
-      toast.success(t.common.success);
+      toast.success('狀態已更新');
     } catch (err) {
       console.error('Failed to update status:', err);
-      toast.error(t.projects.updateStatusFailed);
+      toast.error('更新狀態失敗');
     }
   };
 
@@ -84,12 +82,12 @@ export default function ProjectDetail() {
 
     try {
       await projectsApi.completeMilestone(name, milestoneName);
-      toast.success(t.common.success);
+      toast.success('里程碑已完成');
       // Reload to get updated state
       loadProject(name);
     } catch (err) {
       console.error('Failed to complete milestone:', err);
-      toast.error(t.projects.milestones.updateFailed);
+      toast.error('更新里程碑失敗');
     }
   };
 
@@ -105,11 +103,11 @@ export default function ProjectDetail() {
       setNewMilestoneName('');
       setNewMilestoneDate('');
       setShowAddMilestone(false);
-      toast.success(t.common.success);
+      toast.success('里程碑已新增');
       loadProject(name);
     } catch (err) {
       console.error('Failed to add milestone:', err);
-      toast.error(t.projects.milestones.addFailed);
+      toast.error('新增里程碑失敗');
     } finally {
       setUpdating(false);
     }
@@ -138,7 +136,7 @@ export default function ProjectDetail() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-full">
-        <div className="text-gray-500">{t.common.loading}</div>
+        <div className="text-gray-500">載入中...</div>
       </div>
     );
   }
@@ -154,7 +152,7 @@ export default function ProjectDetail() {
           返回專案列表
         </Link>
         <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
-          <p className="text-red-800">{error || t.projects.notFound}</p>
+          <p className="text-red-800">{error || '找不到專案'}</p>
         </div>
       </div>
     );
@@ -189,10 +187,10 @@ export default function ProjectDetail() {
                   onChange={(e) => handleStatusChange(e.target.value as Project['status'])}
                   className={`px-3 py-1 text-sm rounded-full border cursor-pointer focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-blue-500 ${statusColors[project.status]}`}
                 >
-                  <option value="active">{t.projects.statusOptions.active}</option>
-                  <option value="on-hold">{t.projects.statusOptions.onHold}</option>
-                  <option value="completed">{t.projects.statusOptions.completed}</option>
-                  <option value="archived">{t.projects.statusOptions.archived}</option>
+                  <option value="active">活躍 (Active)</option>
+                  <option value="on-hold">暫停 (On Hold)</option>
+                  <option value="completed">完成 (Completed)</option>
+                  <option value="archived">封存 (Archived)</option>
                 </select>
               </div>
               <p className="text-gray-600 text-lg">{project.description}</p>
@@ -203,15 +201,15 @@ export default function ProjectDetail() {
             {project.deadline && (
               <div className="flex items-center">
                 <Calendar className="h-4 w-4 mr-2 text-gray-400" />
-                <span className="font-medium">{t.projects.deadline}:</span>
-                <span className="ml-2">{new Date(project.deadline).toLocaleDateString(locale === 'zh_Hant' ? 'zh-TW' : 'en-US')}</span>
+                <span className="font-medium">截止日期:</span>
+                <span className="ml-2">{new Date(project.deadline).toLocaleDateString('zh-TW')}</span>
               </div>
             )}
             {project.created && (
               <div className="flex items-center">
                 <Calendar className="h-4 w-4 mr-2 text-gray-400" />
-                <span className="font-medium">{t.projects.createdAt}:</span>
-                <span className="ml-2">{new Date(project.created).toLocaleDateString(locale === 'zh_Hant' ? 'zh-TW' : 'en-US')}</span>
+                <span className="font-medium">建立於:</span>
+                <span className="ml-2">{new Date(project.created).toLocaleDateString('zh-TW')}</span>
               </div>
             )}
           </div>
@@ -220,7 +218,7 @@ export default function ProjectDetail() {
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
                 <TrendingUp className="h-5 w-5 text-blue-600" />
-                <span className="text-base font-semibold text-gray-900">{t.projects.progress}</span>
+                <span className="text-base font-semibold text-gray-900">專案進度</span>
               </div>
               <span className="text-2xl font-bold text-blue-600">{project.progress.percentComplete}%</span>
             </div>
@@ -255,7 +253,7 @@ export default function ProjectDetail() {
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div className="flex items-center gap-2">
                 <Flag className="h-5 w-5 text-purple-600" />
-                <h2 className="text-xl font-semibold text-gray-900">{t.projects.milestones.title}</h2>
+                <h2 className="text-xl font-semibold text-gray-900">里程碑</h2>
                 <span className="px-2 py-0.5 bg-gray-100 text-gray-600 rounded-full text-xs font-medium">
                   {filteredMilestones.length}
                 </span>
@@ -270,9 +268,9 @@ export default function ProjectDetail() {
                     onChange={(e) => setMilestoneFilter(e.target.value as any)}
                     className="pl-8 pr-3 py-1.5 text-sm bg-gray-50 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-700 appearance-none cursor-pointer hover:bg-gray-100 transition-colors"
                   >
-                    <option value="all">{t.projects.milestones.filterAll}</option>
-                    <option value="pending">{t.projects.milestones.filterPending}</option>
-                    <option value="completed">{t.projects.milestones.filterCompleted}</option>
+                    <option value="all">全部顯示</option>
+                    <option value="pending">未完成</option>
+                    <option value="completed">已完成</option>
                   </select>
                 </div>
 
@@ -284,15 +282,15 @@ export default function ProjectDetail() {
                     onChange={(e) => setMilestoneSort(e.target.value as any)}
                     className="pl-8 pr-3 py-1.5 text-sm bg-gray-50 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-700 appearance-none cursor-pointer hover:bg-gray-100 transition-colors"
                   >
-                    <option value="date">{t.projects.milestones.sortByDate}</option>
-                    <option value="name">{t.projects.milestones.sortByName}</option>
+                    <option value="date">按日期</option>
+                    <option value="name">按名稱</option>
                   </select>
                 </div>
 
                 <button
                   onClick={() => setShowAddMilestone(true)}
                   className="p-1.5 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors shadow-sm ml-2"
-                  title={t.projects.milestones.add}
+                  title="新增里程碑"
                 >
                   <Plus className="h-4 w-4" />
                 </button>
@@ -302,11 +300,11 @@ export default function ProjectDetail() {
             {/* Add Milestone Form */}
             {showAddMilestone && (
               <div className="mt-4 bg-blue-50/50 p-4 rounded-lg border border-blue-100 animate-in fade-in slide-in-from-top-2">
-                <h3 className="text-sm font-medium text-gray-900 mb-3">{t.projects.milestones.add}</h3>
+                <h3 className="text-sm font-medium text-gray-900 mb-3">新增里程碑</h3>
                 <div className="space-y-3">
                   <input
                     type="text"
-                    placeholder={t.projects.milestones.name}
+                    placeholder="里程碑名稱"
                     value={newMilestoneName}
                     onChange={(e) => setNewMilestoneName(e.target.value)}
                     className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
@@ -329,7 +327,7 @@ export default function ProjectDetail() {
                       disabled={!newMilestoneName.trim() || updating}
                       className="px-3 py-1.5 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors flex items-center"
                     >
-                      {updating ? t.projects.milestones.adding : t.projects.milestones.add}
+                      {updating ? '新增中...' : '新增'}
                     </button>
                   </div>
                 </div>
@@ -342,7 +340,7 @@ export default function ProjectDetail() {
                       <div className="space-y-3 max-w-xl mx-auto"> {/* Adjusted max-w to xl */}
                         {filteredMilestones.length === 0 ? (
                           <div className="text-center py-12 text-gray-500 bg-gray-50 rounded-lg border border-dashed border-gray-200">
-                            <p>{t.projects.milestones.none}</p>
+                            <p>沒有符合條件的里程碑</p>
                           </div>
                         ) : (
                           filteredMilestones.map((milestone, index) => (
@@ -378,7 +376,7 @@ export default function ProjectDetail() {
                                         ? 'bg-red-100 text-red-700'
                                         : 'bg-gray-100 text-gray-600'
                                     }`}>
-                                      {new Date(milestone.due_date).toLocaleDateString(locale === 'zh_Hant' ? 'zh-TW' : 'en-US')}
+                                      {new Date(milestone.due_date).toLocaleDateString('zh-TW')}
                                     </span>
                                   )}
                                 </div>
@@ -388,7 +386,7 @@ export default function ProjectDetail() {
                                 {milestone.completed && milestone.completed_date && (
                                   <p className="text-xs text-green-600 mt-2 flex items-center bg-green-50 w-fit px-2 py-0.5 rounded">
                                     <CheckCircle className="h-3 w-3 mr-1.5" />
-                                    {t.projects.completedAt}: {new Date(milestone.completed_date).toLocaleDateString(locale === 'zh_Hant' ? 'zh-TW' : 'en-US')}
+                                    完成於 {new Date(milestone.completed_date).toLocaleDateString('zh-TW')}
                                   </p>
                                 )}
                               </div>
@@ -412,7 +410,7 @@ export default function ProjectDetail() {
           <div className="flex-1 overflow-y-auto p-6">
             {notes.length === 0 ? (
               <div className="text-center py-12 bg-gray-50 rounded-lg border border-dashed border-gray-200">
-                <p className="text-gray-500 text-sm">{t.projects.noNotes}</p>
+                <p className="text-gray-500 text-sm">這個專案還沒有筆記</p>
               </div>
             ) : (
               <div className="space-y-3">
@@ -427,7 +425,7 @@ export default function ProjectDetail() {
                     </h3>
                     <p className="text-xs text-gray-400 mt-2 flex items-center">
                       <Calendar className="h-3 w-3 mr-1" />
-                      {new Date(note.created).toLocaleDateString(locale === 'zh_Hant' ? 'zh-TW' : 'en-US')}
+                      {new Date(note.created).toLocaleDateString('zh-TW')}
                     </p>
                     {note.tags.length > 0 && (
                       <div className="flex flex-wrap gap-1.5 mt-2">

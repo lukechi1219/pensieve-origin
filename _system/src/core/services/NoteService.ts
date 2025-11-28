@@ -13,10 +13,15 @@ import {
 import { generateTimestampId, formatDateTime } from '../utils/dateUtils';
 import { TemplateService } from './TemplateService';
 import { sanitizeSubPath, validatePathWithinBase } from '../utils/pathSecurity';
+import { notesCache } from '../utils/cacheManager';
 
 export class NoteService {
   private static vaultPath: string = process.env.VAULT_PATH || './vault';
-  private static notesCache: Note[] | null = null;
+
+  // Cache keys format:
+  // - "note:list:folder" for folder listings
+  // - "note:id:<noteId>" for individual notes
+  // - "note:path:<filePath>" for path-based lookups
 
   /**
    * Set vault path
@@ -26,18 +31,29 @@ export class NoteService {
   }
 
   /**
-   * Invalidate the cache
+   * Invalidate note cache (granular)
+   * @param noteId - Specific note ID to invalidate, or null for all
    */
-  private static invalidateCache(): void {
-    this.notesCache = null;
+  private static invalidateNoteCache(noteId?: string): void {
+    if (noteId) {
+      // Invalidate specific note
+      notesCache.delete(`note:id:${noteId}`);
+      notesCache.deletePattern(`note:path:*${noteId}*`);
+    } else {
+      // Invalidate all note lists (but keep individual note caches)
+      notesCache.deletePattern('note:list:*');
+    }
   }
 
   /**
    * Get all notes (with caching)
    */
   private static async getAllNotes(): Promise<Note[]> {
-    if (this.notesCache) {
-      return this.notesCache;
+    const cacheKey = 'note:list:all';
+    const cached = notesCache.get(cacheKey);
+
+    if (cached) {
+      return cached as Note[];
     }
 
     const allNotes: Note[] = [];
@@ -59,8 +75,9 @@ export class NoteService {
       }
     }
 
-    this.notesCache = allNotes;
-    return this.notesCache;
+    // Cache for 5 minutes (default TTL)
+    notesCache.set(cacheKey, allNotes);
+    return allNotes;
   }
 
   /**
@@ -137,7 +154,8 @@ export class NoteService {
     await writeFile(filePath, fileContent);
     note.filePath = filePath;
 
-    this.invalidateCache();
+    // Invalidate only list caches (new note doesn't have cached version yet)
+    this.invalidateNoteCache();
     return note;
   }
 
@@ -184,7 +202,8 @@ export class NoteService {
     await writeFile(filePath, fileContent);
     note.filePath = filePath;
 
-    this.invalidateCache();
+    // Invalidate only list caches (new note doesn't have cached version yet)
+    this.invalidateNoteCache();
     return note;
   }
 
@@ -286,7 +305,9 @@ export class NoteService {
     note.touch();
     const fileContent = serializeFrontmatter(note.frontmatter, note.content);
     await writeFile(note.filePath, fileContent);
-    this.invalidateCache();
+
+    // Invalidate specific note and list caches
+    this.invalidateNoteCache(note.frontmatter.id);
   }
 
   /**
@@ -340,7 +361,9 @@ export class NoteService {
     // Calling deleteFile here would cause an ENOENT error.
 
     note.filePath = newFilePath;
-    this.invalidateCache();
+
+    // Invalidate specific note and list caches (note moved to different folder)
+    this.invalidateNoteCache(note.frontmatter.id);
   }
 
   /**
@@ -351,8 +374,11 @@ export class NoteService {
       throw new Error('Cannot delete note without filePath');
     }
 
+    const noteId = note.frontmatter.id;
     await deleteFile(note.filePath);
-    this.invalidateCache();
+
+    // Invalidate specific note and list caches
+    this.invalidateNoteCache(noteId);
   }
 
   /**

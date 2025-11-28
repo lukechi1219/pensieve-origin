@@ -5,6 +5,7 @@ import type { Journal } from '../types';
 import { Calendar as CalendarIcon, Edit2, Save, X, Loader2, Eye, EyeOff, ArrowLeft } from 'lucide-react';
 import { useI18n } from '../i18n/I18nContext';
 import ReactMarkdown from 'react-markdown';
+import toast from 'react-hot-toast';
 
 export default function JournalDetail() {
   const { id } = useParams<{ id: string }>();
@@ -66,9 +67,10 @@ export default function JournalDetail() {
       await journalsApi.update(dateId, { content: editContent });
       setJournal({ ...journal, content: editContent });
       setIsEditing(false);
+      toast.success(locale === 'zh_Hant' ? '日誌已保存' : 'Journal saved');
     } catch (error) {
       console.error('Failed to save journal:', error);
-      alert(locale === 'zh_Hant' ? '保存失敗' : 'Failed to save');
+      toast.error(locale === 'zh_Hant' ? '保存失敗' : 'Failed to save');
     } finally {
       setIsSaving(false);
     }

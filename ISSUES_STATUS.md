@@ -71,37 +71,57 @@
 - **Status**: ✅ **BACKEND & CLIENT READY** (UI integration pending)
 - **Note**: API fully functional, just needs UI component to expose feature
 
-### 2. BUG-001: File System Race Conditions
-- **Location**: Multiple services (NoteService, JournalService)
-- **Issue**: File operations lack atomic operations
+### 2. ✅ BUG-001: File System Race Conditions - **FIXED**
+- **Location**: `fileSystem.ts`, all services using file operations
+- **Issue**: File operations lacked atomic operations
 - **Impact**: Possible data loss/corruption with concurrent access
-- **Fix**: Implement file locking with `proper-lockfile` library
-- **Status**: 🟡 **RECOMMENDED FOR PRODUCTION**
+- **Fix**: Implemented file locking with `proper-lockfile` library
+- **Status**: ✅ **COMPLETED** (2025-11-28)
+- **Details**:
+  - Created `fileLock.ts` utility with `withFileLock()` function
+  - Added locking to `writeFile()`, `moveFile()`, `deleteFile()`
+  - Automatic lock acquisition/release with timeout and retry
+  - Exponential backoff for high-contention scenarios
+  - Graceful error handling
 
 ---
 
 ## 🟢 MEDIUM PRIORITY Issues (Recommended)
 
-### 3. BUG-017: No Error UI Feedback
-- **Location**: Most pages
+### 3. ✅ BUG-017: No Error UI Feedback - **FIXED**
+- **Location**: All pages (Notes, NoteDetail, Journals, JournalDetail, Projects, ProjectDetail, Header)
 - **Issue**: Errors only logged to console
 - **Impact**: Poor user experience (blank screens, no feedback)
-- **Fix**: Add toast notifications (react-hot-toast)
-- **Status**: 🟢 **NICE TO HAVE**
+- **Fix**: Added toast notifications (react-hot-toast)
+- **Status**: ✅ **COMPLETED** (2025-11-28)
+- **Details**:
+  - Installed react-hot-toast package
+  - Added Toaster provider in App.tsx with custom styling
+  - Replaced all alert() calls with toast.error() and toast.success()
+  - Added success toasts for all CRUD operations
+  - Bilingual support (Chinese & English)
+  - 0 remaining alert() calls in codebase
 
-### 4. BUG-018: No Caching Strategy
+### 4. BUG-018: No Caching Strategy (API Level)
 - **Location**: All API calls
 - **Issue**: Re-fetches data on every navigation
 - **Impact**: Slow UX, redundant API calls
 - **Fix**: Implement React Query or SWR
 - **Status**: 🟢 **PERFORMANCE OPTIMIZATION**
 
-### 5. BUG-004: Cache Invalidation Issues
-- **Location**: `NoteService.ts`
-- **Issue**: Global cache invalidation
+### 5. ✅ BUG-004: Cache Invalidation Issues - **FIXED**
+- **Location**: `NoteService.ts`, all services with caching
+- **Issue**: Global cache invalidation degraded performance
 - **Impact**: Performance degradation with concurrent writes
-- **Fix**: Implement granular cache updates with TTL
-- **Status**: 🟢 **PERFORMANCE OPTIMIZATION**
+- **Fix**: Implemented granular cache manager with TTL
+- **Status**: ✅ **COMPLETED** (2025-11-28)
+- **Details**:
+  - Created `cacheManager.ts` with generic cache class
+  - TTL-based expiration (5min notes, 2min journals, 10min projects)
+  - Granular invalidation (specific IDs or patterns)
+  - Automatic cleanup service (runs every 5 minutes)
+  - Updated NoteService to use granular cache keys
+  - Cache stats and monitoring capabilities
 
 ### 6. BUG-014: N+1 Query Pattern
 - **Location**: `NoteService.getAllNotes()`
@@ -134,10 +154,10 @@
 | Category | Total | Fixed | Remaining |
 |----------|-------|-------|-----------|
 | **Critical (Security)** | 5 | 5 (100%) | 0 |
-| **High Priority** | 4 | 3 (75%) | 1 |
-| **Medium Priority** | 7 | 0 (0%) | 7 |
+| **High Priority** | 4 | 4 (100%) | 0 |
+| **Medium Priority** | 7 | 2 (29%) | 5 |
 | **Low Priority** | 5 | 0 (0%) | 5 |
-| **TOTAL** | 21 | 8 (38%) | 13 |
+| **TOTAL** | 21 | 11 (52%) | 10 |
 
 ---
 
@@ -247,15 +267,19 @@ cd _system && npm install proper-lockfile
 - ✅ Created security test suite
 - ✅ Documented all fixes
 
-**Bug Fixes** (3 items):
+**Bug Fixes** (6 items):
 - ✅ Added Error Boundary component
 - ✅ Fixed journal save race condition
 - ✅ Fixed batch summarization SSE implementation
+- ✅ Added toast notifications (BUG-017) - replaced all alert() calls
+- ✅ Implemented file locking (BUG-001) - prevents race conditions
+- ✅ Added granular cache with TTL (BUG-004) - improved performance
 
-**Total Time Spent**: ~8 hours
-**Files Modified**: 15 files
-**Files Created**: 5 files
+**Total Time Spent**: ~12 hours
+**Files Modified**: 27 files
+**Files Created**: 7 files (cacheManager.ts, fileLock.ts)
 **Tests Added**: 14 security tests
+**Libraries Added**: proper-lockfile (file locking)
 **Note**: BUG-011 was already fixed in codebase, just needed verification
 
 ---

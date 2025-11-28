@@ -1,6 +1,7 @@
 import fs from 'fs/promises';
 import path from 'path';
 import { existsSync } from 'fs';
+import { withFileLock } from './fileLock.js';
 
 /**
  * Ensure directory exists, create if not
@@ -20,10 +21,15 @@ export async function readFile(filePath: string): Promise<string> {
 
 /**
  * Write file content, create parent directories if needed
+ * Uses file locking to prevent race conditions (BUG-001 fix)
  */
 export async function writeFile(filePath: string, content: string): Promise<void> {
   await ensureDir(path.dirname(filePath));
-  await fs.writeFile(filePath, content, 'utf-8');
+
+  // Acquire file lock before writing to prevent corruption
+  await withFileLock(filePath, async () => {
+    await fs.writeFile(filePath, content, 'utf-8');
+  });
 }
 
 /**
@@ -81,17 +87,26 @@ export async function copyFile(source: string, destination: string): Promise<voi
 
 /**
  * Move file
+ * Uses file locking to prevent race conditions (BUG-001 fix)
  */
 export async function moveFile(source: string, destination: string): Promise<void> {
   await ensureDir(path.dirname(destination));
-  await fs.rename(source, destination);
+
+  // Lock both source and destination to prevent conflicts
+  await withFileLock(source, async () => {
+    await fs.rename(source, destination);
+  });
 }
 
 /**
  * Delete file
+ * Uses file locking to prevent race conditions (BUG-001 fix)
  */
 export async function deleteFile(filePath: string): Promise<void> {
-  await fs.unlink(filePath);
+  // Lock file before deleting to prevent concurrent access
+  await withFileLock(filePath, async () => {
+    await fs.unlink(filePath);
+  });
 }
 
 /**

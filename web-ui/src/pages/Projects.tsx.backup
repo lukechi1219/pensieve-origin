@@ -51,11 +51,11 @@ export default function Projects() {
       setNewProjectDesc('');
       setNewProjectDeadline('');
       setShowModal(false);
-      toast.success(t.common.success);
+      toast.success('專案已建立');
       loadProjects();
     } catch (error) {
       console.error('Failed to create project:', error);
-      toast.error(t.projects.createFailed);
+      toast.error('建立專案失敗');
     } finally {
       setCreating(false);
     }
@@ -79,7 +79,7 @@ export default function Projects() {
         <div>
           <h1 className="text-3xl font-bold text-gray-900">{t.projects.title}</h1>
           <p className="mt-2 text-gray-600">
-            {t.projects.subtitle}
+            {locale === 'zh_Hant' ? '管理您的短期目標（2-3個月期限）' : 'Manage your short-term goals (2-3 month timeframe)'}
           </p>
         </div>
         <button
@@ -87,7 +87,7 @@ export default function Projects() {
           className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-sm"
         >
           <Plus className="h-5 w-5 mr-2" />
-          {t.projects.newProject}
+          {locale === 'zh_Hant' ? '新增專案' : 'New Project'}
         </button>
       </div>
 
@@ -137,7 +137,7 @@ export default function Projects() {
             className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
           >
             <Plus className="h-5 w-5 mr-2" />
-            {t.projects.createNow}
+            {locale === 'zh_Hant' ? '立即建立' : 'Create Now'}
           </button>
         </div>
       )}
@@ -148,7 +148,7 @@ export default function Projects() {
           <div className="bg-white rounded-lg shadow-xl w-full max-w-md animate-in fade-in zoom-in-95 duration-200">
             <div className="flex justify-between items-center p-6 border-b border-gray-100">
               <h3 className="text-lg font-semibold text-gray-900">
-                {t.projects.newProject}
+                {locale === 'zh_Hant' ? '新增專案' : 'Create New Project'}
               </h3>
               <button 
                 onClick={() => setShowModal(false)}
@@ -161,7 +161,7 @@ export default function Projects() {
             <form onSubmit={handleCreateProject} className="p-6 space-y-4">
               <div>
                 <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
-                  {t.projects.name}
+                  {locale === 'zh_Hant' ? '專案名稱' : 'Project Name'}
                 </label>
                 <input
                   type="text"
@@ -176,7 +176,7 @@ export default function Projects() {
               
               <div>
                 <label htmlFor="desc" className="block text-sm font-medium text-gray-700 mb-1">
-                  {t.projects.description}
+                  {locale === 'zh_Hant' ? '描述' : 'Description'}
                 </label>
                 <textarea
                   id="desc"
@@ -190,7 +190,7 @@ export default function Projects() {
               
               <div>
                 <label htmlFor="deadline" className="block text-sm font-medium text-gray-700 mb-1">
-                  {t.projects.deadline}
+                  {locale === 'zh_Hant' ? '截止日期 (選填)' : 'Deadline (Optional)'}
                 </label>
                 <input
                   type="date"
@@ -207,7 +207,7 @@ export default function Projects() {
                   onClick={() => setShowModal(false)}
                   className="px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
                 >
-                  {t.common.cancel}
+                  {locale === 'zh_Hant' ? '取消' : 'Cancel'}
                 </button>
                 <button
                   type="submit"
@@ -216,7 +216,7 @@ export default function Projects() {
                 >
                   {creating 
                     ? (locale === 'zh_Hant' ? '建立中...' : 'Creating...') 
-                    : t.projects.create}
+                    : (locale === 'zh_Hant' ? '建立' : 'Create')}
                 </button>
               </div>
             </form>
@@ -248,7 +248,7 @@ function ProjectCard({ project }: ProjectCardProps) {
       case 'completed':
         return t.projects.completed;
       case 'on-hold':
-        return t.projects.onHold;
+        return locale === 'zh_Hant' ? '暫停' : 'On Hold';
       case 'archived':
         return t.projects.archived;
       default:
@@ -288,7 +288,7 @@ function ProjectCard({ project }: ProjectCardProps) {
       {project.deadline && (
         <div className="mt-4 text-sm text-gray-500 flex items-center">
           <TrendingUp className="h-3 w-3 mr-1 text-gray-400" />
-          {t.projects.due}: {new Date(project.deadline).toLocaleDateString(locale === 'zh_Hant' ? 'zh-TW' : 'en-US')}
+          {locale === 'zh_Hant' ? '截止' : 'Due'}: {new Date(project.deadline).toLocaleDateString(locale === 'zh_Hant' ? 'zh-TW' : 'en-US')}
         </div>
       )}
     </Link>

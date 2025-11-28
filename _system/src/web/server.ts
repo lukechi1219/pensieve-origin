@@ -3,6 +3,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import { config } from '../core/utils/config.js';
 import { createVaultStructure } from '../core/utils/vaultValidator.js';
+import { startCacheCleanup, stopCacheCleanup } from '../core/utils/cacheManager.js';
 import notesRouter from './routes/notes.js';
 import journalsRouter from './routes/journals.js';
 import projectsRouter from './routes/projects.js';
@@ -99,6 +100,10 @@ const startServer = async () => {
     await createVaultStructure();
     console.log('✅ Vault structure verified');
 
+    // Start cache cleanup service
+    startCacheCleanup();
+    console.log('✅ Cache cleanup service started');
+
     app.listen(port, host, () => {
       console.log(`🚀 Pensieve API server running on http://${host}:${port}`);
       console.log(`📂 Vault: ${config.vaultPath}`);
@@ -136,5 +141,18 @@ const startServer = async () => {
 };
 
 startServer();
+
+// Graceful shutdown
+process.on('SIGTERM', () => {
+  console.log('\n🛑 SIGTERM received, shutting down gracefully...');
+  stopCacheCleanup();
+  process.exit(0);
+});
+
+process.on('SIGINT', () => {
+  console.log('\n🛑 SIGINT received, shutting down gracefully...');
+  stopCacheCleanup();
+  process.exit(0);
+});
 
 export default app;

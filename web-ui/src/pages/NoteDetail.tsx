@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import { notesApi } from '../api';
 import type { Note } from '../types';
 import { ArrowLeft, Tag, Calendar, TrendingUp, Save, X, Edit2, Eye, PenLine } from 'lucide-react';
@@ -11,7 +12,7 @@ import { useI18n } from '../i18n/I18nContext';
 export default function NoteDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const [note, setNote] = useState<Note | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -63,9 +64,10 @@ export default function NoteDetail() {
       await notesApi.update(id, { content: editContent });
       setNote({ ...note, content: editContent, modified: new Date().toISOString() });
       setIsEditing(false);
+      toast.success(t.common.success);
     } catch (err) {
       console.error('Failed to save note:', err);
-      alert(t.notes.saveFailed);
+      toast.error(t.notes.saveFailed);
     } finally {
       setIsSaving(false);
     }
@@ -77,10 +79,11 @@ export default function NoteDetail() {
 
     try {
       await notesApi.delete(id);
+      toast.success(t.common.success);
       navigate('/notes/inbox');
     } catch (err) {
       console.error('Delete failed:', err);
-      alert(t.notes.deleteFailed);
+      toast.error(t.notes.deleteFailed);
     }
   };
 
@@ -89,7 +92,7 @@ export default function NoteDetail() {
 
     const validFolders = ['inbox', 'projects', 'areas', 'resources', 'archive'];
     if (!validFolders.includes(targetFolder)) {
-      alert('無效的資料夾名稱。請輸入: inbox, projects, areas, resources, 或 archive');
+      toast.error(t.notes.invalidFolder);
       return;
     }
 
@@ -98,17 +101,17 @@ export default function NoteDetail() {
       // Reload to update path info
       loadNote(id);
       setShowMoveModal(false);
-      alert(`已移動至 ${targetFolder}${subPath ? `/${subPath}` : ''}`);
+      toast.success(t.notes.movedTo(targetFolder, subPath));
     } catch (err) {
       console.error('Move failed:', err);
-      alert('移動失敗');
+      toast.error(t.notes.moveFailed);
     }
   };
 
   if (loading) {
     return (
       <div className="flex items-center justify-center h-full">
-        <div className="text-gray-500">載入中...</div>
+        <div className="text-gray-500">{t.common.loading}</div>
       </div>
     );
   }
@@ -121,7 +124,7 @@ export default function NoteDetail() {
           className="inline-flex items-center text-sm text-gray-600 hover:text-gray-900"
         >
           <ArrowLeft className="h-4 w-4 mr-2" />
-          返回收件匣
+          {t.notes.backToList}
         </Link>
         <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
           <p className="text-red-800">{error}</p>
@@ -138,10 +141,10 @@ export default function NoteDetail() {
           className="inline-flex items-center text-sm text-gray-600 hover:text-gray-900"
         >
           <ArrowLeft className="h-4 w-4 mr-2" />
-          返回收件匣
+          {t.notes.backToList}
         </Link>
         <div className="bg-gray-50 border border-gray-200 rounded-lg p-12 text-center">
-          <p className="text-gray-500">找不到筆記</p>
+          <p className="text-gray-500">{t.notes.notFound}</p>
         </div>
       </div>
     );
@@ -149,10 +152,10 @@ export default function NoteDetail() {
 
   type CodeFlag = { label: string; color: string };
   const codeFlags = [
-    note.isInspiring && { label: '啟發', color: 'bg-yellow-100 text-yellow-800' },
-    note.isUseful && { label: '實用', color: 'bg-green-100 text-green-800' },
-    note.isPersonal && { label: '個人', color: 'bg-blue-100 text-blue-800' },
-    note.isSurprising && { label: '驚奇', color: 'bg-purple-100 text-purple-800' },
+    note.isInspiring && { label: t.notes.codeFlags.inspiring, color: 'bg-yellow-100 text-yellow-800' },
+    note.isUseful && { label: t.notes.codeFlags.useful, color: 'bg-green-100 text-green-800' },
+    note.isPersonal && { label: t.notes.codeFlags.personal, color: 'bg-blue-100 text-blue-800' },
+    note.isSurprising && { label: t.notes.codeFlags.surprising, color: 'bg-purple-100 text-purple-800' },
   ].filter(Boolean) as CodeFlag[];
 
   // Determine the correct back link and label
@@ -258,7 +261,7 @@ export default function NoteDetail() {
                     className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
                   >
                     <Save className="h-4 w-4 mr-2" />
-                    {isSaving ? '儲存中...' : '儲存'}
+                    {isSaving ? t.notes.saving : t.common.save}
                   </button>
                   <button
                     onClick={handleCancel}
@@ -285,18 +288,18 @@ export default function NoteDetail() {
           <div className="flex flex-wrap gap-4 text-sm text-gray-600">
             <div className="flex items-center">
               <Calendar className="h-4 w-4 mr-2" />
-              建立於 {new Date(note.created).toLocaleString('zh-TW')}
+              {t.notes.createdAt} {new Date(note.created).toLocaleString(locale === 'zh_Hant' ? 'zh-TW' : 'en-US')}
             </div>
             {note.modified !== note.created && (
               <div className="flex items-center">
                 <Calendar className="h-4 w-4 mr-2" />
-                修改於 {new Date(note.modified).toLocaleString('zh-TW')}
+                {t.notes.modifiedAt} {new Date(note.modified).toLocaleString(locale === 'zh_Hant' ? 'zh-TW' : 'en-US')}
               </div>
             )}
             {note.distillationLevel > 0 && (
               <div className="flex items-center">
                 <TrendingUp className="h-4 w-4 mr-2" />
-                精煉等級: {note.distillationLevel}
+                {t.notes.distillationLevel}: {note.distillationLevel}
               </div>
             )}
           </div>
@@ -374,7 +377,7 @@ export default function NoteDetail() {
                     value={editContent}
                     onChange={(e) => setEditContent(e.target.value)}
                     className="w-full h-full min-h-[500px] p-4 font-mono text-sm bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none resize-y text-gray-900"
-                    placeholder="開始輸入筆記內容..."
+                    placeholder={t.notes.placeholder}
                   />
                 </div>
 
@@ -384,7 +387,7 @@ export default function NoteDetail() {
                     {editContent ? (
                       <ReactMarkdown>{editContent}</ReactMarkdown>
                     ) : (
-                      <p className="text-gray-400 italic">預覽區域</p>
+                      <p className="text-gray-400 italic">{t.notes.previewArea}</p>
                     )}
                   </div>
                 </div>
@@ -402,7 +405,7 @@ export default function NoteDetail() {
 
       {/* Progressive Summarization with JARVIS */}
       <div className="bg-white rounded-lg shadow p-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">漸進式摘要 (JARVIS)</h2>
+        <h2 className="text-lg font-semibold text-gray-900 mb-4">{t.notes.progressiveSummarization}</h2>
         <SummarizeButton
           noteId={note.id}
           currentLevel={note.distillationLevel}
@@ -420,7 +423,7 @@ export default function NoteDetail() {
       {/* Distillation History */}
       {note.distillationHistory && note.distillationHistory.length > 0 && (
         <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">精煉歷史</h2>
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">{t.notes.distillationHistory}</h2>
           <div className="space-y-3">
             {note.distillationHistory.map((entry, index) => (
               <div key={index} className="border-l-4 border-blue-500 pl-4 py-2">
@@ -429,7 +432,7 @@ export default function NoteDetail() {
                   <span>•</span>
                   <span>{entry.type}</span>
                   <span>•</span>
-                  <span>{new Date(entry.date).toLocaleString('zh-TW')}</span>
+                  <span>{new Date(entry.date).toLocaleString(locale === 'zh_Hant' ? 'zh-TW' : 'en-US')}</span>
                 </div>
                 {entry.summary && (
                   <p className="text-gray-700 text-sm">{entry.summary}</p>
@@ -442,7 +445,7 @@ export default function NoteDetail() {
 
       {/* Other Actions */}
       <div className="bg-white rounded-lg shadow p-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">其他操作</h2>
+        <h2 className="text-lg font-semibold text-gray-900 mb-4">{t.notes.otherActions}</h2>
         <div className="space-y-2">
           <button 
             onClick={handleEdit}
