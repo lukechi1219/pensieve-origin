@@ -49,12 +49,14 @@ router.get('/', async (req: Request, res: Response) => {
       count: journals.length,
       journals: journals.map(journal => ({
         id: journal.frontmatter.id,
+        type: 'journal',
         title: journal.frontmatter.title,
         date: journal.frontmatter.date,
         mood: journal.frontmatter.mood,
         energyLevel: journal.frontmatter.energy_level,
         sleepQuality: journal.frontmatter.sleep_quality,
-        habitsCompleted: journal.frontmatter.habits_completed,
+        habitsCompleted: journal.frontmatter.habits_completed || [],
+        gratitude: journal.frontmatter.gratitude || [],
         tags: journal.frontmatter.tags,
         content: journal.content,
       })),
@@ -77,14 +79,15 @@ router.get('/today', async (req: Request, res: Response) => {
 
     res.json({
       id: journal.frontmatter.id,
+      type: 'journal',
       title: journal.frontmatter.title,
       date: journal.frontmatter.date,
       content: journal.content,
       mood: journal.frontmatter.mood,
       energyLevel: journal.frontmatter.energy_level,
       sleepQuality: journal.frontmatter.sleep_quality,
-      habitsCompleted: journal.frontmatter.habits_completed,
-      gratitude: journal.frontmatter.gratitude,
+      habitsCompleted: journal.frontmatter.habits_completed || [],
+      gratitude: journal.frontmatter.gratitude || [],
       tags: journal.frontmatter.tags,
       filePath: journal.filePath,
     });
@@ -113,14 +116,15 @@ router.get('/yesterday', async (req: Request, res: Response) => {
 
     res.json({
       id: journal.frontmatter.id,
+      type: 'journal',
       title: journal.frontmatter.title,
       date: journal.frontmatter.date,
       content: journal.content,
       mood: journal.frontmatter.mood,
       energyLevel: journal.frontmatter.energy_level,
       sleepQuality: journal.frontmatter.sleep_quality,
-      habitsCompleted: journal.frontmatter.habits_completed,
-      gratitude: journal.frontmatter.gratitude,
+      habitsCompleted: journal.frontmatter.habits_completed || [],
+      gratitude: journal.frontmatter.gratitude || [],
       tags: journal.frontmatter.tags,
     });
   } catch (error) {
@@ -195,14 +199,15 @@ router.get('/:date', async (req: Request, res: Response) => {
 
     res.json({
       id: journal.frontmatter.id,
+      type: 'journal',
       title: journal.frontmatter.title,
       date: journal.frontmatter.date,
       content: journal.content,
       mood: journal.frontmatter.mood,
       energyLevel: journal.frontmatter.energy_level,
       sleepQuality: journal.frontmatter.sleep_quality,
-      habitsCompleted: journal.frontmatter.habits_completed,
-      gratitude: journal.frontmatter.gratitude,
+      habitsCompleted: journal.frontmatter.habits_completed || [],
+      gratitude: journal.frontmatter.gratitude || [],
       tags: journal.frontmatter.tags,
       filePath: journal.filePath,
     });
