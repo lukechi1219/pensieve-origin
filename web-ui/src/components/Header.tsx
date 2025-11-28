@@ -4,6 +4,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { notesApi, journalsApi } from '../api';
 import type { NoteListItem, Journal } from '../types';
 import { useI18n } from '../i18n/I18nContext';
+import toast from 'react-hot-toast';
 
 interface HeaderProps {
   onMenuClick: () => void;
@@ -88,13 +89,14 @@ export default function Header({ onMenuClick }: HeaderProps) {
         tags: ['inbox']
       });
       
+      toast.success('筆記已儲存至收件匣');
       setCaptureTitle('');
       setCaptureContent('');
       setShowCaptureModal(false);
       navigate(`/note/${note.id}`);
     } catch (error) {
       console.error('Capture failed:', error);
-      alert('捕捉失敗');
+      toast.error('捕捉失敗');
     } finally {
       setIsCapturing(false);
     }

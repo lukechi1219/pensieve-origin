@@ -1,2 +1,3 @@
 pyrogram
 TgCrypto
+PyYAML>=6.0
