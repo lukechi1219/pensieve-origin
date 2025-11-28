@@ -3,7 +3,18 @@ import path from 'path';
 import { existsSync } from 'fs';
 import { fileURLToPath } from 'url';
 
-dotenv.config();
+// Load .env from _system directory (backend root)
+// src/core/utils/config.ts -> ../../../ -> _system/
+// dist/core/utils/config.js -> ../../../ -> _system/
+const backendRoot = path.resolve(__dirname, '../../../');
+const envPath = path.resolve(backendRoot, '.env');
+
+if (existsSync(envPath)) {
+  dotenv.config({ path: envPath });
+} else {
+  // Fallback to default loading (process.cwd) if specific file not found
+  dotenv.config();
+}
 
 interface Config {
   vaultPath: string;

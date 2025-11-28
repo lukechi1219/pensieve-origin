@@ -16,6 +16,7 @@ export class TelegramService {
 
       if (!TELEGRAM_APP_API_ID || !TELEGRAM_APP_API_HASH) {
         console.warn('Telegram API credentials not set. Skipping unread message check.');
+        console.warn('Please ensure TELEGRAM_APP_API_ID and TELEGRAM_APP_API_HASH are set in _system/.env');
         return resolve([]);
       }
 
