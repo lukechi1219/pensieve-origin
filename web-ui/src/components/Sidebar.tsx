@@ -37,7 +37,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
 
     fetchTelegramUnread();
     // Poll every minute
-    const interval = setInterval(fetchTelegramUnread, 60000);
+    const interval = setInterval(fetchTelegramUnread, 300000);
     return () => clearInterval(interval);
   }, []);
 
