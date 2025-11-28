@@ -263,12 +263,13 @@ export class JournalService {
   /**
    * Update journal
    */
-  static async update(journal: Journal): Promise<void> {
+  static async update(journal: Journal): Promise<Journal> {
     if (!journal.filePath) {
       throw new Error('Cannot update journal without filePath');
     }
 
     const fileContent = serializeFrontmatter(journal.frontmatter, journal.content);
     await writeFile(journal.filePath, fileContent);
+    return journal;
   }
 }

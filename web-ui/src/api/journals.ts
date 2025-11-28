@@ -11,8 +11,9 @@ import {
 export interface UpdateJournalData {
   content?: string;
   mood?: string;
-  energy_level?: number;
-  habits_completed?: string[];
+  energyLevel?: number;
+  sleepQuality?: number;
+  habitsCompleted?: string[];
   gratitude?: string[];
 }
 
@@ -62,7 +63,9 @@ export const journalsApi = {
   // Update journal entry
   update: async (date: string, data: UpdateJournalData): Promise<Journal> => {
     const response = await apiClient.put(`/journals/${date}`, data);
-    return validateResponse(response, JournalSchema, 'journals.update');
+    // Directly access the 'journal' property from the response,
+    // as the backend returns { message, journal: JournalObject }
+    return validateResponse(response.journal, JournalSchema, 'journals.update');
   },
 
   // Get journaling streak

@@ -269,15 +269,23 @@ router.put('/:date', async (req: Request, res: Response) => {
       journal.frontmatter.gratitude = gratitude;
     }
 
-    await JournalService.update(journal);
+    const updatedJournal = await JournalService.update(journal);
 
     res.json({
       message: 'Journal updated successfully',
       journal: {
-        id: journal.frontmatter.id,
-        date: journal.frontmatter.date,
-        mood: journal.frontmatter.mood,
-        energyLevel: journal.frontmatter.energy_level,
+        id: updatedJournal.frontmatter.id,
+        type: 'journal',
+        title: updatedJournal.frontmatter.title,
+        date: updatedJournal.frontmatter.date,
+        content: updatedJournal.content,
+        mood: updatedJournal.frontmatter.mood,
+        energyLevel: updatedJournal.frontmatter.energy_level,
+        sleepQuality: updatedJournal.frontmatter.sleep_quality,
+        habitsCompleted: updatedJournal.frontmatter.habits_completed || [],
+        gratitude: updatedJournal.frontmatter.gratitude || [],
+        tags: updatedJournal.frontmatter.tags,
+        filePath: updatedJournal.filePath,
       },
     });
   } catch (error) {

@@ -264,25 +264,31 @@ export function validateResponse<T>(
  * @param response - API response (may be wrapped or unwrapped)
  * @returns The data payload
  */
-export function extractData<T>(response: any): T {
-  // Check if response has the standard {success, data} wrapper
+export function extractData<T>(response: unknown): T {
+  // Type guard for standard {success, data} wrapper
   if (
-    response &&
     typeof response === 'object' &&
+    response !== null &&
     'success' in response &&
-    'data' in response
+    'data' in response &&
+    typeof (response as { success: unknown }).success === 'boolean'
   ) {
-    return response.data as T;
+    if ((response as { success: boolean }).success) {
+      return (response as { data: T }).data;
+    }
   }
 
-  // Check if response is an error
+  // Type guard for error response
   if (
-    response &&
     typeof response === 'object' &&
+    response !== null &&
     'success' in response &&
-    'error' in response
+    'error' in response &&
+    typeof (response as { success: unknown }).success === 'boolean'
   ) {
-    throw new Error(response.error || 'API request failed');
+    if (!(response as { success: boolean }).success) {
+      throw new Error((response as { error: string }).error || 'API request failed');
+    }
   }
 
   // Otherwise return the response itself (unwrapped)

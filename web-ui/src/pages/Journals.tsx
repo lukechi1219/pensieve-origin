@@ -10,7 +10,7 @@ import { zhTW } from 'date-fns/locale';
 import ReactMarkdown from 'react-markdown';
 
 export default function Journals() {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const [stats, setStats] = useState<JournalStats | null>(null);
   const [loading, setLoading] = useState(true);
   
@@ -132,17 +132,13 @@ export default function Journals() {
       const { mood, energyLevel, sleepQuality } = parseMoodAndEnergy(editContent);
 
       // Build update payload
-      const updatePayload: any = {
+      const updatePayload: UpdateJournalData = {
         content: editContent,
         habitsCompleted,
         mood,
-        energyLevel
+        energyLevel,
+        sleepQuality,
       };
-
-      // Only include sleepQuality if it exists
-      if (sleepQuality !== undefined) {
-        updatePayload.sleepQuality = sleepQuality;
-      }
 
       // Update with parsed data and wait for server response
       const updatedJournal = await journalsApi.update(dateStr, updatePayload);
@@ -157,7 +153,7 @@ export default function Journals() {
       setIsEditing(false);
     } catch (err) {
       console.error('Failed to save journal:', err);
-      toast.error('儲存失敗，請稍後再試');
+      toast.error(t.journal.saveFailed);
     } finally {
       setIsSaving(false);
     }
@@ -187,7 +183,7 @@ export default function Journals() {
       loadJournalStats();
     } catch (error) {
       console.error('Failed to create journal:', error);
-      toast.error('建立日記失敗');
+      toast.error(t.journal.createFailed);
     }
   };
 
@@ -295,19 +291,19 @@ export default function Journals() {
                   <button
                     onClick={handlePreviousDay}
                     className="p-1.5 text-gray-600 hover:text-blue-600 hover:bg-white rounded-full transition-colors"
-                    title="前一天"
+                    title={t.journal.previousDay}
                   >
                     <ChevronLeft className="h-5 w-5" />
                   </button>
                 )}
                 <h3 className="font-semibold text-gray-900">
-                  {format(selectedDate, 'yyyy年 MMMM d日 EEEE', { locale: zhTW })}
+                  {format(selectedDate, locale === 'zh_Hant' ? 'yyyy年 MMMM d日 EEEE' : 'MMMM d, yyyy EEEE', { locale: locale === 'zh_Hant' ? zhTW : undefined })}
                 </h3>
                 {!showCalendar && (
                   <button
                     onClick={handleNextDay}
                     className="p-1.5 text-gray-600 hover:text-blue-600 hover:bg-white rounded-full transition-colors"
-                    title="後一天"
+                    title={t.journal.nextDay}
                   >
                     <ChevronRight className="h-5 w-5" />
                   </button>
@@ -317,7 +313,7 @@ export default function Journals() {
                 <button
                   onClick={handleEdit}
                   className="p-2 text-gray-600 hover:text-blue-600 hover:bg-white rounded-full transition-colors"
-                  title="編輯日記"
+                  title={t.journal.editEntry}
                 >
                   <Edit2 className="h-4 w-4" />
                 </button>
@@ -362,7 +358,7 @@ export default function Journals() {
                           value={editContent}
                           onChange={(e) => setEditContent(e.target.value)}
                           className="flex-1 w-full p-3 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none font-mono text-sm overflow-y-auto"
-                          placeholder="寫下今天的想法..."
+                          placeholder={t.journal.placeholder}
                         />
                       </div>
 
@@ -370,7 +366,7 @@ export default function Journals() {
                       {showPreview && (
                         <div className="w-1/2 h-full overflow-y-auto border border-gray-300 rounded-lg p-4 bg-gray-50">
                           <div className="prose prose-sm max-w-none">
-                            <ReactMarkdown>{editContent || '*預覽區域*'}</ReactMarkdown>
+                            <ReactMarkdown>{editContent || `*${t.journal.previewPlaceholder}*`}</ReactMarkdown>
                           </div>
                         </div>
                       )}
@@ -391,7 +387,7 @@ export default function Journals() {
                         className="flex items-center px-3 py-2 text-sm text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
                       >
                         <Save className="h-4 w-4 mr-1" />
-                        {isSaving ? '儲存中...' : '儲存'}
+                        {isSaving ? `${t.common.save}...` : t.common.save}
                       </button>
                     </div>
                   </div>
@@ -401,17 +397,17 @@ export default function Journals() {
                     <div className="flex flex-wrap gap-2">
                       {selectedJournal.mood && (
                         <span className="px-2 py-1 bg-blue-50 text-blue-700 text-xs rounded-full">
-                          心情: {selectedJournal.mood}
+                          {t.journal.mood}: {selectedJournal.mood}
                         </span>
                       )}
                       {selectedJournal.energyLevel !== undefined && selectedJournal.energyLevel > 0 && (
                         <span className="px-2 py-1 bg-yellow-50 text-yellow-700 text-xs rounded-full">
-                          能量: {selectedJournal.energyLevel}/10
+                          {t.journal.energyLevel}: {selectedJournal.energyLevel}/10
                         </span>
                       )}
                       {selectedJournal.sleepQuality !== undefined && selectedJournal.sleepQuality > 0 && (
                         <span className="px-2 py-1 bg-purple-50 text-purple-700 text-xs rounded-full">
-                          睡眠: {selectedJournal.sleepQuality}/10
+                          {t.journal.sleepQuality}: {selectedJournal.sleepQuality}/10
                         </span>
                       )}
                     </div>
@@ -419,7 +415,7 @@ export default function Journals() {
                     {/* Habits */}
                     {selectedJournal.habitsCompleted && selectedJournal.habitsCompleted.length > 0 && (
                       <div>
-                        <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">完成習慣</h4>
+                        <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">{t.journal.habitsCompleted}</h4>
                         <div className="flex flex-wrap gap-2">
                           {selectedJournal.habitsCompleted.map(habit => (
                             <span key={habit} className="px-2 py-1 bg-green-50 text-green-700 text-xs rounded-full border border-green-100">
@@ -442,7 +438,7 @@ export default function Journals() {
                     <Edit2 className="h-8 w-8 text-gray-300" />
                   </div>
                   <div>
-                    <p className="font-medium text-gray-900">這天還沒有日記</p>
+                    <p className="font-medium text-gray-900">{t.journal.noEntry}</p>
                     <button
                       onClick={handleCreateJournal}
                       className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
