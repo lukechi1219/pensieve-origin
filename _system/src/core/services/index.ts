@@ -2,5 +2,8 @@ export { NoteService } from './NoteService';
 export { JournalService } from './JournalService';
 export { ProjectService } from './ProjectService';
 export { JarvisService } from './JarvisService';
+export { ClaudeService } from './ClaudeService';
+export { GeminiService } from './GeminiService';
+export { AiService } from './AiService';
 export { ChatService } from './ChatService';
 export { TemplateService } from './TemplateService';

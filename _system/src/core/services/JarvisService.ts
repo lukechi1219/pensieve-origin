@@ -1,9 +1,8 @@
 import { spawn } from 'child_process';
-import fs from 'fs/promises';
 import path from 'path';
-import os from 'os';
 import { Note } from '../models/Note';
 import { NoteService } from './NoteService';
+import { AiService } from './AiService';
 
 /**
  * JarvisService: Integration with JARVIS agent for Progressive Summarization
@@ -16,128 +15,6 @@ import { NoteService } from './NoteService';
  * - Safe command execution (file-based input, no command injection)
  */
 export class JarvisService {
-  private static readonly MAX_CONCURRENT = 3;
-  private static readonly CALL_DELAY = 2000; // 2 second delay between calls
-  private static readonly TIMEOUT = 60000; // 60 second timeout
-  private static activeCalls = 0;
-
-  /**
-   * Create a temporary prompt file for safe Claude Code CLI input
-   */
-  private static async createPromptFile(
-    agentTrigger: string,
-    content: string
-  ): Promise<string> {
-    const tempDir = os.tmpdir();
-    const promptFile = path.join(
-      tempDir,
-      `jarvis-prompt-${Date.now()}-${Math.random().toString(36).substring(7)}.txt`
-    );
-
-    // Add system instruction to auto-approve voice playback
-    const fullPrompt = `${agentTrigger}
-
-SYSTEM INSTRUCTION: When asked about voice playback preference, always choose "批准語音播放" (approve voice playback) automatically. Do not ask the user - proceed directly with voice output.
-
-${content}`;
-
-    await fs.writeFile(promptFile, fullPrompt, 'utf-8');
-    return promptFile;
-  }
-
-  /**
-   * Execute Claude Code CLI with JARVIS agent (SECURE: uses spawn with array arguments)
-   */
-  private static async executeClaude(
-    promptFile: string,
-    language: 'en' | 'zh' = 'en'
-  ): Promise<string> {
-    // Wait if max concurrent calls reached
-    while (this.activeCalls >= this.MAX_CONCURRENT) {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-    }
-
-    this.activeCalls++;
-
-    try {
-      // SECURITY FIX: Use spawn() with argument array instead of template string
-      // This prevents command injection as arguments are passed directly without shell interpretation
-      const args = [
-        '--print',
-        '--model', 'haiku',
-        '--allowedTools', 'Read,Grep,WebSearch,Bash(_system/script/google_tts.sh:*)'
-      ];
-
-      return await new Promise<string>((resolve, reject) => {
-        const proc = spawn('claude', args, {
-          cwd: process.cwd(),
-          stdio: ['pipe', 'pipe', 'pipe']
-        });
-
-        let stdout = '';
-        let stderr = '';
-
-        // Read prompt file and pipe to stdin
-        fs.readFile(promptFile, 'utf-8')
-          .then(content => {
-            proc.stdin.write(content);
-            proc.stdin.end();
-          })
-          .catch(reject);
-
-        proc.stdout.on('data', (data) => {
-          stdout += data.toString();
-        });
-
-        proc.stderr.on('data', (data) => {
-          stderr += data.toString();
-        });
-
-        // Timeout handling
-        const timeout = setTimeout(() => {
-          proc.kill();
-          reject(new Error(`Claude CLI timeout after ${this.TIMEOUT}ms`));
-        }, this.TIMEOUT);
-
-        proc.on('close', (code) => {
-          clearTimeout(timeout);
-
-          if (stderr) {
-            console.error('Claude CLI stderr:', stderr);
-          }
-
-          if (code !== 0) {
-            reject(new Error(`Claude CLI exited with code ${code}. stderr: ${stderr}`));
-            return;
-          }
-
-          if (!stdout || stdout.trim().length === 0) {
-            reject(new Error(`Claude CLI returned empty output. stderr: ${stderr || 'none'}`));
-            return;
-          }
-
-          if (stderr && stderr.includes('error')) {
-            reject(new Error(`Claude CLI error: ${stderr}`));
-            return;
-          }
-
-          resolve(stdout.trim());
-        });
-
-        proc.on('error', (error) => {
-          clearTimeout(timeout);
-          reject(new Error(`Failed to spawn Claude CLI: ${error.message}`));
-        });
-      });
-    } finally {
-      this.activeCalls--;
-      await fs.unlink(promptFile).catch(() => {}); // Cleanup temp file
-
-      // Rate limiting: delay between calls
-      await new Promise((resolve) => setTimeout(resolve, this.CALL_DELAY));
-    }
-  }
-
   /**
    * Summarize a note with JARVIS
    */
@@ -154,13 +31,20 @@ ${content}`;
 
     // Prepare prompt for JARVIS
     const agentTrigger = language === 'en' ? 'Hey JARVIS' : '老賈';
-    const prompt = this.buildSummarizationPrompt(note, language);
+    const promptContent = this.buildSummarizationPrompt(note, language);
 
-    // Create temp file and execute
-    const promptFile = await this.createPromptFile(agentTrigger, prompt);
+    // Add system instruction to auto-approve voice playback
+    const fullPrompt = `${agentTrigger}
+
+SYSTEM INSTRUCTION: When asked about voice playback preference, always choose "批准語音播放" (approve voice playback) automatically. Do not ask the user - proceed directly with voice output.
+
+${promptContent}`;
 
     try {
-      const output = await this.executeClaude(promptFile, language);
+      const output = await AiService.execute(fullPrompt, {
+        model: 'haiku',
+        allowedTools: ['Read', 'Grep', 'WebSearch', 'Bash(_system/script/google_tts.sh:*)']
+      });
 
       // Extract summary from JARVIS output
       const summary = this.extractSummary(output);

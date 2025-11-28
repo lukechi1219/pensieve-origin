@@ -1,10 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { ChatService } from '../../core/services/ChatService';
-import { JarvisService } from '../../core/services/JarvisService';
-import { spawn } from 'child_process';
-import fs from 'fs/promises';
+import { AiService } from '../../core/services/AiService';
 import path from 'path';
-import os from 'os';
 
 const router = Router();
 
@@ -207,105 +204,31 @@ ${conversationContext}
 
 請根據以上對話歷史回應用戶的最新訊息。保持你一貫的幽默和諷刺風格。`;
 
-      // Execute JARVIS using secure spawn() method
-      // Create temp file for prompt
-      const tempDir = os.tmpdir();
-      const promptFile = path.join(
-        tempDir,
-        `jarvis-chat-${Date.now()}-${Math.random().toString(36).substring(7)}.txt`
-      );
-      await fs.writeFile(promptFile, prompt, 'utf-8');
+      // Execute JARVIS using AiService (auto fallback to Gemini if Claude fails)
+      const response = await AiService.execute(prompt, {
+        model: 'sonnet',
+        allowedTools: ['Read', 'Grep', 'WebSearch', 'Bash(_system/script/google_tts.sh:*)'],
+        cwd: path.join(process.cwd(), '..') // Execute in pensieve-origin directory
+      });
 
-      try {
-        // SECURITY FIX: Use spawn() with argument array instead of template string
-        const response = await new Promise<string>((resolve, reject) => {
-          const args = [
-            '--print',
-            '--model', 'sonnet',
-            '--allowedTools', 'Read,Grep,WebSearch,Bash(_system/script/google_tts.sh:*)'
-          ];
+      // Add JARVIS response to chat
+      chat = await ChatService.addMessage(id, 'assistant', response);
 
-          const proc = spawn('claude', args, {
-            cwd: path.join(process.cwd(), '..'), // Execute in pensieve-origin directory
-            stdio: ['pipe', 'pipe', 'pipe']
-          });
-
-          let stdout = '';
-          let stderr = '';
-
-          // Read prompt file and pipe to stdin
-          fs.readFile(promptFile, 'utf-8')
-            .then(content => {
-              proc.stdin.write(content);
-              proc.stdin.end();
-            })
-            .catch(reject);
-
-          proc.stdout.on('data', (data) => {
-            stdout += data.toString();
-          });
-
-          proc.stderr.on('data', (data) => {
-            stderr += data.toString();
-          });
-
-          const timeout = setTimeout(() => {
-            proc.kill();
-            reject(new Error('Claude CLI timeout after 60s'));
-          }, 60000);
-
-          proc.on('close', (code) => {
-            clearTimeout(timeout);
-
-            if (code !== 0) {
-              reject(new Error(`Claude CLI exited with code ${code}. stderr: ${stderr}`));
-              return;
-            }
-
-            if (!stdout || stdout.trim().length === 0) {
-              reject(new Error('Claude CLI returned empty output'));
-              return;
-            }
-
-            resolve(stdout.trim());
-          });
-
-          proc.on('error', (error) => {
-            clearTimeout(timeout);
-            reject(error);
-          });
-        });
-
-        // Add JARVIS response to chat
-        chat = await ChatService.addMessage(id, 'assistant', response);
-
-        // Cleanup temp file
-        await fs.unlink(promptFile).catch(() => {});
-      } catch (jarvisError: any) {
-        console.error('JARVIS error:', jarvisError);
-        // Add error message as assistant response
-        const errorMsg = '抱歉，我現在無法回應。請稍後再試。';
-        chat = await ChatService.addMessage(id, 'assistant', errorMsg);
-
-        // Cleanup temp file
-        await fs.unlink(promptFile).catch(() => {});
-      }
-    } catch (error: any) {
-      console.error('JARVIS integration error:', error);
-      // Continue even if JARVIS fails
+    } catch (jarvisError: any) {
+      console.error('JARVIS error:', jarvisError);
+      // Add error message as assistant response
+      const errorMsg = '抱歉，我現在無法回應。請稍後再試。';
+      chat = await ChatService.addMessage(id, 'assistant', errorMsg);
     }
-
-    res.json({
-      success: true,
-      data: chat.toJSON(),
-    });
   } catch (error: any) {
-    console.error('Add message error:', error);
-    res.status(500).json({
-      success: false,
-      error: error.message || 'Failed to add message',
-    });
+    console.error('JARVIS integration error:', error);
+    // Continue even if JARVIS fails
   }
+
+  res.json({
+    success: true,
+    data: chat ? chat.toJSON() : null,
+  });
 });
 
 /**
