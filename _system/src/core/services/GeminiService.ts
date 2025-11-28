@@ -20,20 +20,18 @@ export class GeminiService {
   private static mapModel(claudeModel?: string): string | undefined {
     // Currently defaulting to CLI default model as specific versions (gemini-2.0-flash)
     // were causing "thinking not supported" errors or 404s.
-    return undefined;
+    // return undefined;
     
-    /* Future mapping:
     switch (claudeModel) {
       case 'haiku':
-        return 'gemini-2.0-flash';
+        return 'gemini-2.5-flash';
       case 'sonnet':
-        return 'gemini-2.0-flash';
+        return 'gemini-2.5-pro';
       case 'opus':
-        return 'gemini-2.0-pro-exp';
+        return 'gemini-3-pro-preview';
       default:
         return undefined;
     }
-    */
   }
 
   /**
