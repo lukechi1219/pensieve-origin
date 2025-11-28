@@ -54,9 +54,9 @@ async def get_unread_telegram_messages():
                 for dialog in dialogs:
                     chat = dialog.chat
                     unread = dialog.unread_messages_count
-                    print(f"DEBUG: Chat ID: {chat.id}, Title: {chat.title or chat.first_name}, Unread: {unread}", file=sys.stderr)
 
                     if unread > 0:
+                        print(f"DEBUG: Chat ID: {chat.id}, Title: {chat.title or chat.first_name}, Unread: {unread}", file=sys.stderr)
                         unread_messages.append({
                             "chat_id": chat.id,
                             "chat_title": chat.title or chat.first_name,
