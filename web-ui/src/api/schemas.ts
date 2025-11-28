@@ -34,6 +34,8 @@ export const ChatSchema = z.object({
   created: z.string(),
   modified: z.string(),
   tags: z.array(z.string()).optional(),
+  model: z.string().optional(),
+  messageCount: z.number(),
 });
 
 export const ChatListResponseSchema = ApiResponseSchema(
