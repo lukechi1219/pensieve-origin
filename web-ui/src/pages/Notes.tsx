@@ -69,17 +69,15 @@ export default function Notes() {
 
     setCreating(true);
     try {
-      // Create note (will be created in inbox by default)
+      const subPath = useSubfolder && subfolderName.trim() ? subfolderName.trim() : undefined;
+      
+      // Create note directly in target folder
       const note = await notesApi.create({
         title: newNoteTitle,
         content: '',
+        folder: folder !== 'inbox' ? folder : undefined,
+        subPath: folder !== 'inbox' ? subPath : undefined,
       });
-
-      // Move to target folder if not inbox
-      if (folder !== 'inbox') {
-        const subPath = useSubfolder && subfolderName.trim() ? subfolderName.trim() : undefined;
-        await notesApi.move(note.id, folder, subPath);
-      }
 
       setShowCreateModal(false);
       setNewNoteTitle('');

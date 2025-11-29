@@ -172,7 +172,7 @@ router.get('/:id', validateParams(noteIdSchema), async (req: Request, res: Respo
  */
 router.post('/', validateBody(createNoteSchema), async (req: Request, res: Response) => {
   try {
-    const { title, content, tags, isInspiring, isUseful, isPersonal, isSurprising } = req.body;
+    const { title, content, tags, isInspiring, isUseful, isPersonal, isSurprising, folder, subPath } = req.body;
 
     const note = await NoteService.create(title, content || '', {
       tags: tags || [],
@@ -180,6 +180,8 @@ router.post('/', validateBody(createNoteSchema), async (req: Request, res: Respo
       isUseful: isUseful || false,
       isPersonal: isPersonal || false,
       isSurprising: isSurprising || false,
+      folder,
+      subPath,
     });
 
     res.status(201).json({
@@ -187,7 +189,19 @@ router.post('/', validateBody(createNoteSchema), async (req: Request, res: Respo
       note: {
         id: note.frontmatter.id,
         title: note.frontmatter.title,
+        content: note.content,
         created: note.frontmatter.created,
+        modified: note.frontmatter.modified,
+        tags: note.frontmatter.tags,
+        paraFolder: note.frontmatter.para_folder,
+        paraPath: note.frontmatter.para_path,
+        distillationLevel: note.frontmatter.distillation_level,
+        distillationHistory: note.frontmatter.distillation_history,
+        isInspiring: note.frontmatter.is_inspiring,
+        isUseful: note.frontmatter.is_useful,
+        isPersonal: note.frontmatter.is_personal,
+        isSurprising: note.frontmatter.is_surprising,
+        status: note.frontmatter.status,
         filePath: note.filePath,
       },
     });
@@ -231,7 +245,20 @@ router.put('/:id', validateParams(noteIdSchema), validateBody(updateNoteSchema),
       note: {
         id: note.frontmatter.id,
         title: note.frontmatter.title,
+        content: note.content,
+        created: note.frontmatter.created,
         modified: note.frontmatter.modified,
+        tags: note.frontmatter.tags,
+        paraFolder: note.frontmatter.para_folder,
+        paraPath: note.frontmatter.para_path,
+        distillationLevel: note.frontmatter.distillation_level,
+        distillationHistory: note.frontmatter.distillation_history,
+        isInspiring: note.frontmatter.is_inspiring,
+        isUseful: note.frontmatter.is_useful,
+        isPersonal: note.frontmatter.is_personal,
+        isSurprising: note.frontmatter.is_surprising,
+        status: note.frontmatter.status,
+        filePath: note.filePath,
       },
     });
   } catch (error) {
@@ -304,9 +331,24 @@ router.post('/:id/move', validateParams(noteIdSchema), validateBody(moveNoteSche
 
     res.json({
       message: 'Note moved successfully',
-      from: originalFolder,
-      to: folder,
-      subPath,
+      note: {
+        id: note.frontmatter.id,
+        title: note.frontmatter.title,
+        content: note.content,
+        created: note.frontmatter.created,
+        modified: note.frontmatter.modified,
+        tags: note.frontmatter.tags,
+        paraFolder: note.frontmatter.para_folder,
+        paraPath: note.frontmatter.para_path,
+        distillationLevel: note.frontmatter.distillation_level,
+        distillationHistory: note.frontmatter.distillation_history,
+        isInspiring: note.frontmatter.is_inspiring,
+        isUseful: note.frontmatter.is_useful,
+        isPersonal: note.frontmatter.is_personal,
+        isSurprising: note.frontmatter.is_surprising,
+        status: note.frontmatter.status,
+        filePath: note.filePath,
+      },
     });
   } catch (error: any) {
     // SECURITY: Log path traversal attempts

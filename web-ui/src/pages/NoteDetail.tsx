@@ -6,6 +6,7 @@ import type { Note } from '../types';
 import { ArrowLeft, Tag, Calendar, TrendingUp, Save, X, Edit2, Eye, PenLine } from 'lucide-react';
 import SummarizeButton from '../components/SummarizeButton';
 import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import MoveNoteModal from '../components/MoveNoteModal';
 import { useI18n } from '../i18n/I18nContext';
 
@@ -385,7 +386,7 @@ export default function NoteDetail() {
                 <div className={`min-h-[500px] bg-white border border-gray-200 rounded-lg p-6 overflow-y-auto ${activeTab === 'write' ? 'hidden lg:block' : ''}`}>
                   <div className="prose prose-sm max-w-none">
                     {editContent ? (
-                      <ReactMarkdown>{editContent}</ReactMarkdown>
+                      <ReactMarkdown remarkPlugins={[remarkGfm]}>{editContent}</ReactMarkdown>
                     ) : (
                       <p className="text-gray-400 italic">{t.notes.previewArea}</p>
                     )}
@@ -395,7 +396,7 @@ export default function NoteDetail() {
             </div>
           ) : (
             <div className="prose max-w-none font-sans text-gray-900">
-              <ReactMarkdown>
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>
                 {note.content}
               </ReactMarkdown>
             </div>

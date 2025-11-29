@@ -111,6 +111,8 @@ export class NoteService {
       isUseful?: boolean;
       isPersonal?: boolean;
       isSurprising?: boolean;
+      folder?: NoteFrontmatter['para_folder'];
+      subPath?: string;
     }
   ): Promise<Note> {
     const id = generateTimestampId();
@@ -146,9 +148,30 @@ export class NoteService {
       if (options.isSurprising !== undefined) {
         note.frontmatter.is_surprising = options.isSurprising;
       }
+      
+      // Handle folder placement
+      if (options.folder) {
+        const folderMap = {
+          inbox: '0-inbox',
+          projects: '1-projects',
+          areas: '2-areas',
+          resources: '3-resources',
+          archive: '4-archive',
+        };
+        
+        const safeSubPath = options.subPath ? sanitizeSubPath(options.subPath) : '';
+        const baseFolder = folderMap[options.folder];
+        
+        note.frontmatter.para_folder = options.folder;
+        note.frontmatter.para_path = path.join(baseFolder, safeSubPath);
+      }
     }
 
     const filePath = this.getNotePath(note);
+    
+    // SECURITY FIX: Ensure path is within vault
+    await validatePathWithinBase(filePath, this.vaultPath);
+    
     const fileContent = serializeFrontmatter(note.frontmatter, note.content);
 
     await writeFile(filePath, fileContent);
@@ -172,6 +195,8 @@ export class NoteService {
       isUseful?: boolean;
       isPersonal?: boolean;
       isSurprising?: boolean;
+      folder?: NoteFrontmatter['para_folder'];
+      subPath?: string;
     }
   ): Promise<Note> {
     const id = generateTimestampId();
@@ -194,9 +219,30 @@ export class NoteService {
       if (options.isSurprising !== undefined) {
         note.frontmatter.is_surprising = options.isSurprising;
       }
+      
+      // Handle folder placement
+      if (options.folder) {
+        const folderMap = {
+          inbox: '0-inbox',
+          projects: '1-projects',
+          areas: '2-areas',
+          resources: '3-resources',
+          archive: '4-archive',
+        };
+        
+        const safeSubPath = options.subPath ? sanitizeSubPath(options.subPath) : '';
+        const baseFolder = folderMap[options.folder];
+        
+        note.frontmatter.para_folder = options.folder;
+        note.frontmatter.para_path = path.join(baseFolder, safeSubPath);
+      }
     }
 
     const filePath = this.getNotePath(note);
+    
+    // SECURITY FIX: Ensure path is within vault
+    await validatePathWithinBase(filePath, this.vaultPath);
+    
     const fileContent = serializeFrontmatter(note.frontmatter, note.content);
 
     await writeFile(filePath, fileContent);

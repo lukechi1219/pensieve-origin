@@ -15,6 +15,8 @@ export interface CreateNoteData {
   is_useful?: boolean;
   is_personal?: boolean;
   is_surprising?: boolean;
+  folder?: string;
+  subPath?: string;
 }
 
 export interface UpdateNoteData {
@@ -64,7 +66,8 @@ export const notesApi = {
   // Update note
   update: async (id: string, data: UpdateNoteData): Promise<Note> => {
     const response = await apiClient.put(`/notes/${id}`, data);
-    return validateResponse(response, NoteSchema, 'notes.update');
+    const validated = validateResponse(response, CreateNoteResponseSchema, 'notes.update');
+    return validated.note;
   },
 
   // Delete note
@@ -79,7 +82,8 @@ export const notesApi = {
   // Move note to another folder
   move: async (id: string, folder: string, subPath?: string): Promise<Note> => {
     const response = await apiClient.post(`/notes/${id}/move`, { folder, subPath });
-    return validateResponse(response, NoteSchema, 'notes.move');
+    const validated = validateResponse(response, CreateNoteResponseSchema, 'notes.move');
+    return validated.note;
   },
 
   // List subfolders in a folder

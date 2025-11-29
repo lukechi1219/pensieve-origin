@@ -122,6 +122,10 @@ export const createNoteSchema = z.object({
   isUseful: z.boolean().optional().default(false),
   isPersonal: z.boolean().optional().default(false),
   isSurprising: z.boolean().optional().default(false),
+  folder: paraFolderSchema.optional(),
+  subPath: z.string()
+    .max(200, 'Path too long (max 200 characters)')
+    .optional(),
 });
 
 // Note update schema
