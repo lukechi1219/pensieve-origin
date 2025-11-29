@@ -3,6 +3,7 @@ import type { Project, ListResponse, ProjectListItem } from '../types';
 import {
   ProjectListResponseSchema,
   ProjectSchema,
+  CreateProjectResponseSchema,
   validateResponse,
 } from './schemas';
 
@@ -46,13 +47,15 @@ export const projectsApi = {
   // Create new project
   create: async (data: CreateProjectData): Promise<Project> => {
     const response = await apiClient.post('/projects', data);
-    return validateResponse(response, ProjectSchema, 'projects.create');
+    const validated = validateResponse(response, CreateProjectResponseSchema, 'projects.create');
+    return validated.project;
   },
 
   // Update project
   update: async (name: string, data: UpdateProjectData): Promise<Project> => {
     const response = await apiClient.put(`/projects/${encodeURIComponent(name)}`, data);
-    return validateResponse(response, ProjectSchema, 'projects.update');
+    const validated = validateResponse(response, CreateProjectResponseSchema, 'projects.update');
+    return validated.project;
   },
 
   // Update project progress
@@ -61,7 +64,8 @@ export const projectsApi = {
       `/projects/${encodeURIComponent(name)}/progress`,
       { progress }
     );
-    return validateResponse(response, ProjectSchema, 'projects.updateProgress');
+    const validated = validateResponse(response, CreateProjectResponseSchema, 'projects.updateProgress');
+    return validated.project;
   },
 
   // Add milestone

@@ -200,6 +200,11 @@ export const ProjectListResponseSchema = z.object({
   projects: z.array(ProjectListItemSchema),
 });
 
+export const CreateProjectResponseSchema = z.object({
+  message: z.string(),
+  project: ProjectSchema,
+});
+
 // JARVIS schemas
 export const SummarizeResponseSchema = z.object({
   summary: z.string(),

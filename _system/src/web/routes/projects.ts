@@ -104,9 +104,22 @@ router.post('/', async (req: Request, res: Response) => {
       message: 'Project created successfully',
       project: {
         name: project.metadata.name,
-        status: project.metadata.status,
-        deadline: project.metadata.deadline,
         description: project.metadata.description,
+        created: project.metadata.created,
+        deadline: project.metadata.deadline,
+        status: project.metadata.status,
+        goal: project.metadata.goal,
+        successCriteria: project.metadata.success_criteria,
+        relatedAreas: project.metadata.related_areas,
+        tags: project.metadata.tags,
+        notes: project.metadata.notes,
+        progress: {
+          percentComplete: project.metadata.progress.percent_complete,
+          lastUpdated: project.metadata.progress.last_updated,
+          milestones: project.metadata.progress.milestones,
+        },
+        archive: project.metadata.archive,
+        path: project.dirPath,
       },
     });
   } catch (error) {
@@ -149,6 +162,21 @@ router.put('/:name', async (req: Request, res: Response) => {
       project: {
         name: project.metadata.name,
         description: project.metadata.description,
+        created: project.metadata.created,
+        deadline: project.metadata.deadline,
+        status: project.metadata.status,
+        goal: project.metadata.goal,
+        successCriteria: project.metadata.success_criteria,
+        relatedAreas: project.metadata.related_areas,
+        tags: project.metadata.tags,
+        notes: project.metadata.notes,
+        progress: {
+          percentComplete: project.metadata.progress.percent_complete,
+          lastUpdated: project.metadata.progress.last_updated,
+          milestones: project.metadata.progress.milestones,
+        },
+        archive: project.metadata.archive,
+        path: project.dirPath,
       },
     });
   } catch (error) {
@@ -176,10 +204,33 @@ router.post('/:name/progress', async (req: Request, res: Response) => {
     }
 
     await ProjectService.updateProgress(name, progress);
+    const project = await ProjectService.getByName(name);
+
+    if (!project) {
+       throw new Error('Project not found after update');
+    }
 
     res.json({
       message: 'Progress updated successfully',
-      progress,
+      project: {
+        name: project.metadata.name,
+        description: project.metadata.description,
+        created: project.metadata.created,
+        deadline: project.metadata.deadline,
+        status: project.metadata.status,
+        goal: project.metadata.goal,
+        successCriteria: project.metadata.success_criteria,
+        relatedAreas: project.metadata.related_areas,
+        tags: project.metadata.tags,
+        notes: project.metadata.notes,
+        progress: {
+          percentComplete: project.metadata.progress.percent_complete,
+          lastUpdated: project.metadata.progress.last_updated,
+          milestones: project.metadata.progress.milestones,
+        },
+        archive: project.metadata.archive,
+        path: project.dirPath,
+      },
     });
   } catch (error) {
     res.status(500).json({

@@ -70,6 +70,7 @@ export class ProjectService {
 
     // Create project metadata
     const project = Project.create(name, description, deadlineMonths);
+    project.dirPath = projectPath;
 
     // Write project.yaml
     const yamlContent = project.toYAML();
