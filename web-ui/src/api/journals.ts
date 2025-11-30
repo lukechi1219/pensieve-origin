@@ -17,6 +17,12 @@ export interface UpdateJournalData {
   gratitude?: string[];
 }
 
+// Define an interface for the expected update response structure
+interface UpdateJournalResponse {
+  message: string;
+  journal: Journal;
+}
+
 export const journalsApi = {
   // List journals by date range or month
   list: async (params?: {
@@ -62,7 +68,7 @@ export const journalsApi = {
 
   // Update journal entry
   update: async (date: string, data: UpdateJournalData): Promise<Journal> => {
-    const response = await apiClient.put(`/journals/${date}`, data);
+    const response = await apiClient.put(`/journals/${date}`, data) as UpdateJournalResponse;
     // Directly access the 'journal' property from the response,
     // as the backend returns { message, journal: JournalObject }
     return validateResponse(response.journal, JournalSchema, 'journals.update');
@@ -73,6 +79,7 @@ export const journalsApi = {
     const response = await apiClient.get('/journals/streak');
     return validateResponse(response, StreakResponseSchema, 'journals.getStreak');
   },
+
 
   // Get journal statistics
   getStats: async (): Promise<JournalStats> => {

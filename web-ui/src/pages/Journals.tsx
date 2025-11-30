@@ -1,6 +1,6 @@
 import toast from 'react-hot-toast';
 import { useEffect, useState } from 'react';
-import { journalsApi } from '../api';
+import {journalsApi, type UpdateJournalData} from '../api';
 import type { Journal, JournalStats } from '../types';
 import { Calendar as CalendarIcon, TrendingUp, Edit2, Save, X, Loader2, Eye, EyeOff, FileText, SplitSquareHorizontal, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useI18n } from '../i18n/I18nContext';
@@ -28,6 +28,8 @@ export default function Journals() {
 
   // Calendar visibility toggle
   const [showCalendar, setShowCalendar] = useState(true);
+  // Stats Grid visibility toggle
+  const [showStatsGrid, setShowStatsGrid] = useState(true);
 
   // Preview toggle
   const [showPreview, setShowPreview] = useState(false);
@@ -226,45 +228,68 @@ export default function Journals() {
           <h1 className="text-3xl font-bold text-gray-900">{t.journal.title}</h1>
           <p className="mt-2 text-gray-600">{t.journal.subtitle}</p>
         </div>
-        <button
-          onClick={() => setShowCalendar(!showCalendar)}
-          className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors shadow-sm"
-          title={showCalendar ? t.journal.hideCalendar : t.journal.showCalendar}
-        >
-          {showCalendar ? (
-            <>
-              <EyeOff className="h-4 w-4" />
-              {t.journal.hideCalendar}
-            </>
-          ) : (
-            <>
-              <Eye className="h-4 w-4" />
-              {t.journal.showCalendar}
-            </>
-          )}
-        </button>
+        <div className="flex gap-2">
+          {/* Toggle Stats Grid button */}
+          <button
+            onClick={() => setShowStatsGrid(!showStatsGrid)}
+            className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors shadow-sm"
+            title={showStatsGrid ? t.journal.hideStats : t.journal.showStats}
+          >
+            {showStatsGrid ? (
+              <>
+                <EyeOff className="h-4 w-4" />
+                {t.journal.hideStats}
+              </>
+            ) : (
+              <>
+                <Eye className="h-4 w-4" />
+                {t.journal.showStats}
+              </>
+            )}
+          </button>
+          {/* Toggle Calendar button */}
+          <button
+            onClick={() => setShowCalendar(!showCalendar)}
+            className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors shadow-sm"
+            title={showCalendar ? t.journal.hideCalendar : t.journal.showCalendar}
+          >
+            {showCalendar ? (
+              <>
+                <EyeOff className="h-4 w-4" />
+                {t.journal.hideCalendar}
+              </>
+            ) : (
+              <>
+                <Eye className="h-4 w-4" />
+                {t.journal.showCalendar}
+              </>
+            )}
+          </button>
+        </div>
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <StatCard
-          title={t.journal.totalEntries}
-          value={stats?.totalEntries || 0}
-          icon={CalendarIcon}
-        />
-        <StatCard
-          title={t.journal.currentStreak}
-          value={stats?.currentStreak || 0}
-          icon={TrendingUp}
-        />
-        <StatCard
-          title={t.journal.longestStreak}
-          value={stats?.longestStreak || 0}
-          icon={TrendingUp}
-        />
-      </div>
+      {showStatsGrid && (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <StatCard
+            title={t.journal.totalEntries}
+            value={stats?.totalEntries || 0}
+            icon={CalendarIcon}
+          />
+          <StatCard
+            title={t.journal.currentStreak}
+            value={stats?.currentStreak || 0}
+            icon={TrendingUp}
+          />
+          <StatCard
+            title={t.journal.longestStreak}
+            value={stats?.longestStreak || 0}
+            icon={TrendingUp}
+          />
+        </div>
+      )}
 
-      <div className={`grid grid-cols-1 ${showCalendar ? 'lg:grid-cols-3' : ''} gap-6`}>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Calendar Section */}
         {showCalendar && (
           <div className="lg:col-span-2 relative">
@@ -283,8 +308,8 @@ export default function Journals() {
         )}
 
         {/* Journal Entry Detail */}
-        <div className={showCalendar ? 'lg:col-span-1' : ''}>
-          <div className="bg-white rounded-lg shadow flex flex-col" style={{ height: 'calc(100vh - 24rem)' }}>
+        <div className={showCalendar ? 'lg:col-span-1' : 'lg:col-span-3'}>
+          <div className="bg-white rounded-lg shadow flex flex-col" style={{ height: 'calc(100vh - 20rem)' }}>
             <div className="p-4 border-b border-gray-200 flex justify-between items-center bg-gray-50 rounded-t-lg flex-shrink-0">
               <div className="flex items-center gap-2">
                 {!showCalendar && (
@@ -464,7 +489,7 @@ interface StatCardProps {
 
 function StatCard({ title, value, icon: Icon }: StatCardProps) {
   return (
-    <div className="bg-white rounded-lg shadow p-6">
+    <div className="bg-white rounded-lg shadow p-3">
       <div className="flex items-center justify-between">
         <div>
           <p className="text-sm text-gray-600">{title}</p>
