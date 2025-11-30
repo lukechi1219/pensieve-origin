@@ -31,7 +31,7 @@ router.get('/subfolders', async (req: Request, res: Response) => {
       });
     }
 
-    const validFolders = ['inbox', 'projects', 'areas', 'resources', 'archive'];
+    const validFolders = ['inbox', 'projects', 'areas', 'resources', 'archive', 'people'];
     if (!validFolders.includes(folder as string)) {
       return res.status(400).json({
         error: 'Invalid folder',
@@ -65,7 +65,7 @@ router.get('/', async (req: Request, res: Response) => {
     let notes;
 
     if (folder) {
-      const validFolders = ['inbox', 'projects', 'areas', 'resources', 'archive'];
+      const validFolders = ['inbox', 'projects', 'areas', 'resources', 'archive', 'people'];
       if (!validFolders.includes(folder as string)) {
         return res.status(400).json({
           error: 'Invalid folder',
@@ -89,7 +89,7 @@ router.get('/', async (req: Request, res: Response) => {
     } else {
       // Get all notes from all folders
       const allNotes = [];
-      const folders = ['inbox', 'projects', 'areas', 'resources', 'archive'] as const;
+      const folders = ['inbox', 'projects', 'areas', 'resources', 'archive', 'people'] as const;
       for (const f of folders) {
         const folderNotes = await NoteService.listByFolder(f);
         allNotes.push(...folderNotes);
@@ -174,15 +174,34 @@ router.post('/', validateBody(createNoteSchema), async (req: Request, res: Respo
   try {
     const { title, content, tags, isInspiring, isUseful, isPersonal, isSurprising, folder, subPath } = req.body;
 
-    const note = await NoteService.create(title, content || '', {
-      tags: tags || [],
-      isInspiring: isInspiring || false,
-      isUseful: isUseful || false,
-      isPersonal: isPersonal || false,
-      isSurprising: isSurprising || false,
-      folder,
-      subPath,
-    });
+    let note;
+
+    if (folder === 'people') {
+      // Use person template for people
+      note = await NoteService.createFromTemplate(title, 'person', {
+        tags: tags || [],
+        isInspiring: isInspiring || false,
+        isUseful: isUseful || false,
+        isPersonal: isPersonal || true, // People are personal by default
+        isSurprising: isSurprising || false,
+        folder,
+        subPath,
+      });
+      
+      // If content is provided (e.g. from quick capture), append it or replace freeform
+      // But usually creation from template ignores initial content unless we inject it.
+      // For now, we rely on the template.
+    } else {
+      note = await NoteService.create(title, content || '', {
+        tags: tags || [],
+        isInspiring: isInspiring || false,
+        isUseful: isUseful || false,
+        isPersonal: isPersonal || false,
+        isSurprising: isSurprising || false,
+        folder,
+        subPath,
+      });
+    }
 
     res.status(201).json({
       message: 'Note created successfully',

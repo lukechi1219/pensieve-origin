@@ -104,8 +104,8 @@ export default function Notes() {
 
   const folderName = t.notes.folders[folder as keyof typeof t.notes.folders] || folder;
 
-  // Show create button only for areas and resources
-  const showCreateButton = folder === 'areas' || folder === 'resources';
+  // Show create button only for areas and resources and people
+  const showCreateButton = folder === 'areas' || folder === 'resources' || folder === 'people';
 
   // Filter notes by selected subfolder
   const filteredNotes = selectedSubfolder

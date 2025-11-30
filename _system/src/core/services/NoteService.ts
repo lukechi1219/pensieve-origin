@@ -57,7 +57,7 @@ export class NoteService {
     }
 
     const allNotes: Note[] = [];
-    const folders = ['0-inbox', '1-projects', '2-areas', '3-resources', '4-archive'];
+    const folders = ['0-inbox', '1-projects', '2-areas', '3-resources', '4-archive', '5-people'];
 
     for (const folder of folders) {
       const folderPath = path.join(this.vaultPath, folder);
@@ -105,6 +105,7 @@ export class NoteService {
    */
   static async createFromTemplate(
     title: string,
+    templateName: string = 'note',
     options?: {
       tags?: string[];
       isInspiring?: boolean;
@@ -121,7 +122,7 @@ export class NoteService {
 
     // Generate note from template
     const templateService = new TemplateService(this.vaultPath);
-    const templateContent = await templateService.instantiate('note', {
+    const templateContent = await templateService.instantiate(templateName, {
       id,
       title,
       created: timestamp,
@@ -157,6 +158,7 @@ export class NoteService {
           areas: '2-areas',
           resources: '3-resources',
           archive: '4-archive',
+          people: '5-people',
         };
         
         const safeSubPath = options.subPath ? sanitizeSubPath(options.subPath) : '';
@@ -228,6 +230,7 @@ export class NoteService {
           areas: '2-areas',
           resources: '3-resources',
           archive: '4-archive',
+          people: '5-people',
         };
         
         const safeSubPath = options.subPath ? sanitizeSubPath(options.subPath) : '';
@@ -293,6 +296,7 @@ export class NoteService {
       areas: '2-areas',
       resources: '3-resources',
       archive: '4-archive',
+      people: '5-people',
     };
 
     const folderPath = path.join(this.vaultPath, folderMap[paraFolder]);
@@ -382,6 +386,7 @@ export class NoteService {
       areas: '2-areas',
       resources: '3-resources',
       archive: '4-archive',
+      people: '5-people',
     };
 
     // Build path with sanitized subPath

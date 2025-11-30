@@ -24,6 +24,7 @@ const MoveNoteModal: React.FC<MoveNoteModalProps> = ({ isOpen, onClose, currentF
     { value: 'projects', label: '專案 (Projects)' },
     { value: 'areas', label: '領域 (Areas)' },
     { value: 'resources', label: '資源 (Resources)' },
+    { value: 'people', label: '人脈 (People)' },
     { value: 'archive', label: '封存 (Archive)' },
   ];
 
@@ -97,6 +98,11 @@ const MoveNoteModal: React.FC<MoveNoteModalProps> = ({ isOpen, onClose, currentF
                   <Folder className={`h-5 w-5 ${selectedFolder === folder.value ? 'text-blue-600' : 'text-gray-500'}`} />
                   <span className={`font-medium ${selectedFolder === folder.value ? 'text-blue-900' : 'text-gray-800'}`}>
                     {folder.label}
+                    {folder.value === currentFolder && (
+                      <span className="ml-2 text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">
+                        目前位置
+                      </span>
+                    )}
                   </span>
                 </label>
 

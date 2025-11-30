@@ -13,7 +13,7 @@ export interface NoteFrontmatter {
   created: string;
   modified: string;
   tags: string[];
-  para_folder: 'inbox' | 'projects' | 'areas' | 'resources' | 'archive';
+  para_folder: 'inbox' | 'projects' | 'areas' | 'resources' | 'archive' | 'people';
   para_path: string;
 
   // Progressive Summarization

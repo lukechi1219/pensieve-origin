@@ -309,7 +309,7 @@ export default function Journals() {
 
         {/* Journal Entry Detail */}
         <div className={showCalendar ? 'lg:col-span-1' : 'lg:col-span-3'}>
-          <div className="bg-white rounded-lg shadow flex flex-col" style={{ height: 'calc(100vh - 20rem)' }}>
+          <div className="bg-white rounded-lg shadow flex flex-col" style={{ height: 'calc(100vh - 14rem)' }}>
             <div className="p-4 border-b border-gray-200 flex justify-between items-center bg-gray-50 rounded-t-lg flex-shrink-0">
               <div className="flex items-center gap-2">
                 {!showCalendar && (

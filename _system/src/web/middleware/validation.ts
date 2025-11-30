@@ -99,7 +99,7 @@ export const noteIdSchema = z.object({
 });
 
 // PARA folder validation
-export const paraFolderSchema = z.enum(['inbox', 'projects', 'areas', 'resources', 'archive']);
+export const paraFolderSchema = z.enum(['inbox', 'projects', 'areas', 'resources', 'archive', 'people']);
 
 // Tag validation
 export const tagSchema = z.string()

@@ -1,0 +1,112 @@
+# Person Template Schema
+# Used for capturing new people/contacts
+
+schema_version: "1.0"
+
+# Metadata template (YAML frontmatter in generated file)
+metadata:
+  id: "{{id}}"
+  title: "{{title}}"
+  created: "{{created}}"
+  modified: "{{modified}}"
+  tags: []
+  para_folder: "people"
+  para_path: "5-people"
+
+  # Progressive Summarization (standard fields)
+  distillation_level: 0
+  distillation_history:
+    - level: 0
+      date: "{{created}}"
+      type: "captured"
+
+  # CODE Standards (standard fields)
+  is_inspiring: false
+  is_useful: false
+  is_personal: true # People are usually personal
+  is_surprising: false
+
+  status: "active"
+
+# Content structure for Markdown generation
+sections:
+  - name: "{{title}}"
+    type: "heading1"
+
+  - name: "基本資料"
+    type: "section"
+    content:
+      - type: "field"
+        label: "全名"
+      - type: "field"
+        label: "職位"
+      - type: "field"
+        label: "公司/組織"
+      - type: "field"
+        label: "聯絡方式"
+      - type: "freeform"
+        placeholder: "  - Email：
+  - 電話：
+  - LinkedIn：
+  - 其他："
+      - type: "field"
+        label: "地點"
+
+  - name: "重要日期"
+    type: "section"
+    content:
+      - type: "field"
+        label: "生日"
+      - type: "field"
+        label: "認識日期"
+      - type: "field"
+        label: "其他紀念日"
+
+  - name: "關係網絡"
+    type: "section"
+    content:
+      - type: "field"
+        label: "如何認識"
+      - type: "field"
+        label: "共同連絡人"
+      - type: "field"
+        label: "關係類型"
+      - type: "field"
+        label: "關係強度"
+
+  - name: "互動記錄"
+    type: "section"
+    content:
+      - type: "subsection"
+        title: "YYYY-MM-DD - [互動類型：會面/通話/郵件/... ]"
+        format: "bullet_list"
+        placeholder: "- **主題**：
+- **內容摘要**：
+- **行動項目**：
+- **後續追蹤** :"
+
+  - name: "個人特質與興趣"
+    type: "section"
+    content:
+      - type: "field"
+        label: "專業強項"
+      - type: "field"
+        label: "興趣愛好"
+      - type: "field"
+        label: "性格特點"
+      - type: "field"
+        label: "溝通偏好"
+
+  - name: "備註"
+    type: "section"
+    content:
+      - type: "freeform"
+        placeholder: "[其他重要資訊]"
+
+  - name: "相關筆記"
+    type: "section"
+    content:
+      - type: "freeform"
+        placeholder: "- 專案：[[]]
+- 主題：[[]]
+- 想法：[[]]"

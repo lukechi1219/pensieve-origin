@@ -7,6 +7,7 @@ export const translations = {
       projects: 'Projects',
       areas: 'Areas',
       resources: 'Resources',
+      people: 'People',
       journal: 'Journal',
       chat: 'Chat',
     },
@@ -74,6 +75,7 @@ export const translations = {
         areas: 'Areas',
         resources: 'Resources',
         archive: 'Archive',
+        people: 'People',
       },
       invalidFolder: 'Invalid folder name. Please enter: inbox, projects, areas, resources, or archive',
       movedTo: (folder: string, subPath?: string) =>
@@ -273,6 +275,7 @@ export const translations = {
       projects: '專案',
       areas: '領域',
       resources: '資源',
+      people: '人脈',
       journal: '日記',
       chat: '對話',
     },
@@ -340,6 +343,7 @@ export const translations = {
         areas: '領域',
         resources: '資源',
         archive: '封存',
+        people: '人脈',
       },
       invalidFolder: '無效的資料夾名稱。請輸入: inbox, projects, areas, resources, 或 archive',
       movedTo: (folder: string, subPath?: string) =>

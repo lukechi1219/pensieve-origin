@@ -8,7 +8,8 @@ import {
   Inbox,
   Archive,
   MessageSquare,
-  Send
+  Send,
+  Users
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { useI18n } from '../i18n/I18nContext';
@@ -47,6 +48,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
     { name: t.nav.projects, href: '/projects', icon: FolderKanban },
     { name: t.nav.areas, href: '/notes/areas', icon: FileText },
     { name: t.nav.resources, href: '/notes/resources', icon: Archive },
+    { name: t.nav.people, href: '/notes/people', icon: Users },
     { name: t.nav.journal, href: '/journals', icon: BookOpen },
     { name: t.nav.chat, href: '/chats', icon: MessageSquare },
     { 
