@@ -62,6 +62,15 @@ sections:
         format: "bullet_list"
         placeholder: "-"
 
+  - name: "健康待辦"
+    type: "section"
+    content:
+      - type: "checklist"
+        items:
+          - "💧 飲水目標（8 杯 / 2000ml）"
+          - "👁️ 眼睛保健：20-20-20 法則（每 20 分鐘看 20 英尺遠 20 秒）"
+          - "😴 午休小睡"
+
   - name: "Habits Tracker"
     type: "section"
     content:
