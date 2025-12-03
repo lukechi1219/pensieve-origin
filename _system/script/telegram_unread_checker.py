@@ -19,6 +19,9 @@ async def get_unread_telegram_messages():
         print("Error: TELEGRAM_APP_API_ID must be an integer.")
         return []
 
+    # Chat IDs to filter out
+    FILTERED_CHAT_IDS = [-1002324591808, -1001592938946]
+
     unread_messages = []
     
     # Remove potential session lock files
@@ -56,6 +59,11 @@ async def get_unread_telegram_messages():
                     unread = dialog.unread_messages_count
 
                     if unread > 0:
+                        # Skip filtered chat IDs
+                        if chat.id in FILTERED_CHAT_IDS:
+                            print(f"DEBUG: Skipping filtered chat ID: {chat.id}, Title: {chat.title or chat.first_name}, Unread: {unread}", file=sys.stderr)
+                            continue
+
                         print(f"DEBUG: Chat ID: {chat.id}, Title: {chat.title or chat.first_name}, Unread: {unread}", file=sys.stderr)
                         unread_messages.append({
                             "chat_id": chat.id,
