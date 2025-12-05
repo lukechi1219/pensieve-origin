@@ -1,10 +1,11 @@
 import { useEffect, useState, useRef, useLayoutEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Send, User, Bot, Volume2, VolumeX } from 'lucide-react';
+import { ArrowLeft, Send, User, Bot, Volume2, VolumeX, Mic, MicOff } from 'lucide-react';
 import { chatsApi } from '../api/chats';
 import { jarvisApi } from '../api/jarvis';
 import type { Chat } from '../types';
 import { useI18n } from '../i18n/I18nContext';
+import { useSpeechToText } from '../hooks/useSpeechToText';
 
 const BATCH_SIZE = 20;
 
@@ -20,15 +21,58 @@ export default function ChatDetail() {
   const [sending, setSending] = useState(false);
   const [voiceMode, setVoiceMode] = useState(false);
   const [isJarvisResponding, setIsJarvisResponding] = useState(false);
-  
+
   // Pagination state
   const [hasMore, setHasMore] = useState(true);
   const [isFetchingMore, setIsFetchingMore] = useState(false);
-  
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const scrollHeightRef = useRef<number>(0);
   const isRestoringScrollRef = useRef<boolean>(false);
+
+  // Speech-to-text integration
+  const {
+    isListening,
+    transcript,
+    interimTranscript,
+    startListening,
+    stopListening,
+    isSupported: isSpeechSupported,
+  } = useSpeechToText({
+    language: locale === 'zh_Hant' ? 'zh-TW' : 'en-US',
+    continuous: true,
+    interimResults: true,
+    onSentenceComplete: (text) => {
+      // Auto-submit when sentence is complete
+      setNewMessage(text);
+      // Trigger send after a brief delay to allow UI update
+      setTimeout(() => {
+        if (id && !sending) {
+          handleSendMessage();
+        }
+      }, 100);
+    },
+    onError: (errorMsg) => {
+      setError(errorMsg);
+    },
+  });
+
+  // Update input field with speech transcript
+  useEffect(() => {
+    if (isListening) {
+      const displayText = transcript + (interimTranscript ? ' ' + interimTranscript : '');
+      setNewMessage(displayText);
+    }
+  }, [transcript, interimTranscript, isListening]);
+
+  const toggleSpeechRecognition = () => {
+    if (isListening) {
+      stopListening();
+    } else {
+      startListening();
+    }
+  };
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -142,6 +186,11 @@ export default function ChatDetail() {
 
     const messageToSend = newMessage.trim();
     setNewMessage(''); // Clear input immediately
+
+    // Stop listening if speech is active
+    if (isListening) {
+      stopListening();
+    }
 
     // Detect language based on message content (simple heuristic)
     const hasChinese = /[\u4e00-\u9fa5]/.test(messageToSend);
@@ -367,13 +416,43 @@ export default function ChatDetail() {
       {/* Message Input */}
       <div className="bg-white border-t border-gray-200 px-8 py-4">
         <div className="flex gap-3">
+          {/* Speech-to-text button */}
+          {isSpeechSupported && (
+            <button
+              onClick={toggleSpeechRecognition}
+              disabled={sending}
+              className={`px-4 py-2 rounded-lg transition-colors flex items-center gap-2 ${
+                isListening
+                  ? 'bg-red-600 text-white hover:bg-red-700 animate-pulse'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+              title={isListening ? t.chat.stopSpeech : t.chat.startSpeech}
+            >
+              {isListening ? (
+                <>
+                  <MicOff className="w-5 h-5" />
+                  <span className="hidden sm:inline">{t.chat.recording}</span>
+                </>
+              ) : (
+                <>
+                  <Mic className="w-5 h-5" />
+                  <span className="hidden sm:inline">{t.chat.speak}</span>
+                </>
+              )}
+            </button>
+          )}
+
           <input
             type="text"
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && e.ctrlKey && handleSendMessage()}
             placeholder={t.chat.inputPlaceholder}
-            className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className={`flex-1 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+              isListening
+                ? 'border-red-500 bg-red-50'
+                : 'border-gray-300'
+            }`}
             disabled={sending}
           />
           <button
@@ -385,6 +464,13 @@ export default function ChatDetail() {
             {sending ? t.chat.sending : t.chat.sendMessage}
           </button>
         </div>
+
+        {/* Interim transcript indicator */}
+        {isListening && interimTranscript && (
+          <div className="mt-2 px-4 py-2 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-700">
+            <span className="font-medium">{t.chat.listening}:</span> {interimTranscript}
+          </div>
+        )}
       </div>
     </div>
   );

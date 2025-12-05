@@ -55,6 +55,7 @@ export const translations = {
       saving: 'Saving...',
       preview: 'Preview',
       editNote: 'Edit note',
+      doubleClickToEdit: 'Double click to edit',
       moveToFolder: 'Move to another folder',
       deleteNote: 'Delete note',
       placeholder: 'Start typing your note content...',
@@ -111,6 +112,7 @@ export const translations = {
       previousDay: 'Previous day',
       nextDay: 'Next day',
       editEntry: 'Edit entry',
+      doubleClickToEdit: 'Double click to edit',
       placeholder: 'Write your thoughts today...',
       previewPlaceholder: 'Preview area',
       noEntry: 'No entry for this day yet',
@@ -192,6 +194,12 @@ export const translations = {
       noMessages: 'No messages yet, start the conversation!',
       deleteChat: 'Delete conversation',
       confirmDelete: 'Are you sure you want to delete this conversation?',
+      // Speech-to-text
+      startSpeech: 'Start voice input',
+      stopSpeech: 'Stop voice input',
+      speak: 'Speak',
+      recording: 'Recording',
+      listening: 'Listening',
     },
 
     // JARVIS
@@ -323,6 +331,7 @@ export const translations = {
       saving: '儲存中...',
       preview: '預覽',
       editNote: '編輯筆記',
+      doubleClickToEdit: '點擊兩下以編輯',
       moveToFolder: '移動到其他資料夾',
       deleteNote: '刪除筆記',
       placeholder: '開始輸入筆記內容...',
@@ -379,6 +388,7 @@ export const translations = {
       previousDay: '前一天',
       nextDay: '後一天',
       editEntry: '編輯日記',
+      doubleClickToEdit: '點擊兩下以編輯',
       placeholder: '寫下今天的想法...',
       previewPlaceholder: '預覽區域',
       noEntry: '這天還沒有日記',
@@ -460,6 +470,12 @@ export const translations = {
       noMessages: '尚無訊息，開始對話吧！',
       deleteChat: '刪除對話',
       confirmDelete: '確定要刪除此對話嗎？',
+      // 語音輸入
+      startSpeech: '開始語音輸入',
+      stopSpeech: '停止語音輸入',
+      speak: '語音',
+      recording: '錄音中',
+      listening: '聆聽中',
     },
 
     // JARVIS
