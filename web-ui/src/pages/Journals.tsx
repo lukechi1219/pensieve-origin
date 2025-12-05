@@ -1,5 +1,5 @@
 import toast from 'react-hot-toast';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import {journalsApi, type UpdateJournalData} from '../api';
 import type { Journal, JournalStats } from '../types';
 import { Calendar as CalendarIcon, TrendingUp, Edit2, Save, X, Loader2, Eye, EyeOff, FileText, SplitSquareHorizontal, ChevronLeft, ChevronRight } from 'lucide-react';
@@ -13,7 +13,7 @@ export default function Journals() {
   const { t, locale } = useI18n();
   const [stats, setStats] = useState<JournalStats | null>(null);
   const [loading, setLoading] = useState(true);
-  
+
   // Calendar state
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [journals, setJournals] = useState<Journal[]>([]);
@@ -33,6 +33,9 @@ export default function Journals() {
 
   // Preview toggle
   const [showPreview, setShowPreview] = useState(false);
+
+  // Ref for click-outside detection
+  const journalCardRef = useRef<HTMLDivElement>(null);
 
   // Load stats on mount
   useEffect(() => {
@@ -123,6 +126,12 @@ export default function Journals() {
   const handleSave = async () => {
     if (!selectedJournal) return;
 
+    // Skip save if content hasn't changed
+    if (editContent === (selectedJournal.content || '')) {
+      setIsEditing(false);
+      return;
+    }
+
     setIsSaving(true);
     try {
       const dateStr = format(selectedDate, 'yyyy-MM-dd');
@@ -212,6 +221,29 @@ export default function Journals() {
       setCurrentMonth(nextDay);
     }
   };
+
+  // Click-outside detection for auto-save
+  useEffect(() => {
+    if (!isEditing || isSaving) return;
+
+    const handleClickOutside = async (event: MouseEvent) => {
+      // Check if click is outside the journal card
+      if (journalCardRef.current && !journalCardRef.current.contains(event.target as Node)) {
+        // Auto-save and exit edit mode
+        await handleSave();
+      }
+    };
+
+    // Add listener with slight delay to avoid immediate trigger
+    const timerId = setTimeout(() => {
+      document.addEventListener('mousedown', handleClickOutside);
+    }, 100);
+
+    return () => {
+      clearTimeout(timerId);
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isEditing, isSaving, editContent, selectedJournal]);
 
   if (loading) {
     return (
@@ -309,7 +341,7 @@ export default function Journals() {
 
         {/* Journal Entry Detail */}
         <div className={showCalendar ? 'lg:col-span-1' : 'lg:col-span-3'}>
-          <div className="bg-white rounded-lg shadow flex flex-col" style={{ height: 'calc(100vh - 14rem)' }}>
+          <div className="bg-white rounded-lg shadow flex flex-col" style={{ height: 'calc(100vh - 14rem)' }} ref={journalCardRef}>
             <div className="p-4 border-b border-gray-200 flex justify-between items-center bg-gray-50 rounded-t-lg flex-shrink-0">
               <div className="flex items-center gap-2">
                 {!showCalendar && (
@@ -417,7 +449,11 @@ export default function Journals() {
                     </div>
                   </div>
                 ) : (
-                  <div className="space-y-4 overflow-y-auto h-full">
+                  <div
+                    className="space-y-4 overflow-y-auto h-full hover:bg-gray-50 transition-colors rounded-lg p-4 -m-4 cursor-pointer"
+                    onDoubleClick={handleEdit}
+                    title={locale === 'zh_Hant' ? '雙擊以編輯' : 'Double-click to edit'}
+                  >
                     {/* Metadata */}
                     <div className="flex flex-wrap gap-2">
                       {selectedJournal.mood && (

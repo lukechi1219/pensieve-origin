@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { notesApi } from '../api';
@@ -17,13 +17,14 @@ export default function NoteDetail() {
   const [note, setNote] = useState<Note | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  
+
   // Edit state
   const [isEditing, setIsEditing] = useState(false);
   const [editContent, setEditContent] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   const [activeTab, setActiveTab] = useState<'write' | 'preview'>('write');
   const [showMoveModal, setShowMoveModal] = useState(false);
+  const contentCardRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (id) {
@@ -59,6 +60,12 @@ export default function NoteDetail() {
 
   const handleSave = async () => {
     if (!note || !id) return;
+
+    // Skip save if content hasn't changed
+    if (editContent === note.content) {
+      setIsEditing(false);
+      return;
+    }
 
     setIsSaving(true);
     try {
@@ -108,6 +115,29 @@ export default function NoteDetail() {
       toast.error(t.notes.moveFailed);
     }
   };
+
+  // Click-outside detection for auto-save
+  useEffect(() => {
+    if (!isEditing || isSaving) return;
+
+    const handleClickOutside = async (event: MouseEvent) => {
+      // Check if click is outside the content card
+      if (contentCardRef.current && !contentCardRef.current.contains(event.target as Node)) {
+        // Auto-save and exit edit mode
+        await handleSave();
+      }
+    };
+
+    // Add listener with slight delay to avoid immediate trigger
+    const timerId = setTimeout(() => {
+      document.addEventListener('mousedown', handleClickOutside);
+    }, 100);
+
+    return () => {
+      clearTimeout(timerId);
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isEditing, isSaving, editContent, note]);
 
   if (loading) {
     return (
@@ -226,7 +256,7 @@ export default function NoteDetail() {
       </Link>
 
       {/* Note content */}
-      <div className="bg-white rounded-lg shadow">
+      <div className="bg-white rounded-lg shadow" ref={contentCardRef}>
         {/* Header */}
         <div className="p-6 border-b border-gray-200">
           <div className="flex justify-between items-start">
@@ -395,7 +425,11 @@ export default function NoteDetail() {
               </div>
             </div>
           ) : (
-            <div className="prose max-w-none font-sans text-gray-900">
+            <div
+              className="prose max-w-none font-sans text-gray-900 hover:bg-gray-50 transition-colors rounded-lg p-4 -m-4 cursor-pointer"
+              onDoubleClick={handleEdit}
+              title={locale === 'zh_Hant' ? '雙擊以編輯' : 'Double-click to edit'}
+            >
               <ReactMarkdown remarkPlugins={[remarkGfm]}>
                 {note.content}
               </ReactMarkdown>

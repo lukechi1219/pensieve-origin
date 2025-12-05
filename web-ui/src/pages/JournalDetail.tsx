@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { journalsApi } from '../api';
 import type { Journal } from '../types';
@@ -17,6 +17,7 @@ export default function JournalDetail() {
   const [editContent, setEditContent] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
+  const contentCardRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (id) {
@@ -56,6 +57,12 @@ export default function JournalDetail() {
   const handleSave = async () => {
     if (!journal || !id) return;
 
+    // Skip save if content hasn't changed
+    if (editContent === (journal.content || '')) {
+      setIsEditing(false);
+      return;
+    }
+
     setIsSaving(true);
     try {
       // Convert YYYYMMDD to YYYY-MM-DD if needed
@@ -80,6 +87,29 @@ export default function JournalDetail() {
     setIsEditing(false);
     setEditContent(journal?.content || '');
   };
+
+  // Click-outside detection for auto-save
+  useEffect(() => {
+    if (!isEditing || isSaving) return;
+
+    const handleClickOutside = async (event: MouseEvent) => {
+      // Check if click is outside the content card
+      if (contentCardRef.current && !contentCardRef.current.contains(event.target as Node)) {
+        // Auto-save and exit edit mode
+        await handleSave();
+      }
+    };
+
+    // Add listener with slight delay to avoid immediate trigger
+    const timerId = setTimeout(() => {
+      document.addEventListener('mousedown', handleClickOutside);
+    }, 100);
+
+    return () => {
+      clearTimeout(timerId);
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isEditing, isSaving, editContent, journal]);
 
   if (loading) {
     return (
@@ -177,7 +207,7 @@ export default function JournalDetail() {
       </div>
 
       {/* Content */}
-      <div className="bg-white rounded-lg shadow p-6">
+      <div className="bg-white rounded-lg shadow p-6" ref={contentCardRef}>
         {isEditing ? (
           showPreview ? (
             <div className="prose max-w-none">
@@ -192,7 +222,11 @@ export default function JournalDetail() {
             />
           )
         ) : (
-          <div className="prose max-w-none">
+          <div
+            className="prose max-w-none hover:bg-gray-50 transition-colors rounded-lg p-4 -m-4 cursor-pointer"
+            onDoubleClick={handleEdit}
+            title={locale === 'zh_Hant' ? '雙擊以編輯' : 'Double-click to edit'}
+          >
             {journal.content ? (
               <ReactMarkdown>{journal.content}</ReactMarkdown>
             ) : (
